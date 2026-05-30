@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global History Atlas Prototype</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* Custom dark styling for map components */
+        .leaflet-popup-content-wrapper {
+            background-color: #1e1e2e !important;
+            color: #ffffff !important;
+            border-radius: 8px;
+            border: 1px solid #3e3e5e;
+        }
+        .leaflet-popup-tip { background-color: #1e1e2e !important; }
+        /* Smooth fade effects for our panels */
+        .transition-all { transition: all 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="bg-[#121214] text-gray-100 font-sans overflow-hidden h-screen w-screen flex flex-col">
+
+    <header class="bg-[#1a1a1e] border-b border-gray-800 p-4 flex justify-between items-center z-10">
+        <h1 class="text-xl font-bold tracking-wider text-amber-400">📜 CHRONOMAP ATLAS <span class="text-xs text-gray-500 font-mono">v1.0 MVP</span></h1>
+        <p class="text-sm text-gray-400">Hover over map markers to explore historical nodes.</p>
+    </header>
+
+    <div class="flex flex-1 relative overflow-hidden">
+        
+        <div id="map" class="w-full h-full z-0"></div>
+
+        <div id="sidebar" class="absolute right-0 top-0 h-full w-96 bg-[#1a1a1e] border-l border-gray-800 z-10 translate-x-full transition-all p-6 shadow-2xl flex flex-col justify-between">
+            <div>
+                <div class="flex justify-between items-center mb-4">
+                    <span id="side-era" class="text-xs font-mono text-amber-500 uppercase tracking-widest">Era</span>
+                    <button onclick="closeSidebar()" class="text-gray-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+                </div>
+                <h2 id="side-title" class="text-2xl font-serif text-white mb-2">Event Title</h2>
+                <p id="side-description" class="text-gray-400 text-sm leading-relaxed">Detailed event documentation goes here...</p>
+            </div>
+            <div class="pt-4 border-t border-gray-800 text-xs text-gray-500 font-mono" id="side-coords">
+                Coordinates: 0.000, 0.000
+            </div>
+        </div>
+
+        <div id="video-modal" class="absolute inset-0 bg-black/80 z-20 hidden flex items-center justify-center p-4">
+            <div class="bg-[#1a1a1e] border border-gray-800 rounded-xl max-w-3xl w-full p-4 relative">
+                <button onclick="closeVideo()" class="absolute -top-10 right-0 text-white hover:text-amber-400 font-bold text-sm bg-gray-900 px-3 py-1 rounded cursor-pointer">✕ CLOSE VIDEO</button>
+                <div class="aspect-video w-full bg-black rounded flex items-center justify-center">
+                    <video id="modal-video-player" class="w-full h-full rounded" controls src=""></video>
+                </div>
+                <h3 id="video-title" class="text-lg font-bold text-white mt-3">Playing Video Narrative</h3>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize the interactive map environment
+        // we set 'crs: L.CRS.Simple' or layout a standard flat grid map projection
+        const map = L.map('map', {
+            center: [30, 20],
+            zoom: 3,
+            minZoom: 2,
+            maxZoom: 6,
+            zoomControl: false
+        });
+
+        // Add custom dark-mode minimal world map layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap & &copy; CARTO'
+        }).addTo(map);
+
+        // Reposition standard zoom layout controls out of the way
+        L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
+        // Dummy Dataset for Historical Prototype Nodes (The Silk Road Era)
+        const historicalNodes = [
+            {
+                id: 1,
+                title: "Chang'an Terminal (Han Dynasty)",
+                era: "130 BCE",
+                coords: [34.2631, 108.9487],
+                summary: "The eastern starting point of the Silk Road. Capital of the Han Dynasty where silk, jade, and secrets of manufacturing were packaged for the Western world.",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+                pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+            },
+            {
+                id: 2,
+                title: "The Oasis of Dunhuang",
+                era: "111 BCE",
+                coords: [40.1421, 94.6618],
+                summary: "A vital desert crossroads where the Silk Road split to bypass the deadly Taklamakan Desert. Home to the Mogao Caves filled with massive cultural and religious art installations.",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
+                pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+            },
+            {
+                id: 3,
+                title: "The Great Market of Samarkand",
+                era: "c. 300 CE",
+                coords: [39.6542, 66.9597],
+                summary: "The true midpoint of global commerce in Central Asia. Cosmopolitan hub where Islamic philosophy, Chinese papermaking techniques, and European goods fused together.",
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
+                pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+            }
+        ];
+
+        // Loop through our data arrays to place markers on the flat canvas
+        historicalNodes.forEach(node => {
+            // Set up a custom gold pulse marker ring 
+            const marker = L.circleMarker(node.coords, {
+                radius: 8,
+                fillColor: '#fbbf24',
+                color: '#d97706',
+                weight: 2,
+                fillOpacity: 0.8
+            }).addTo(map);
+
+            // Construct the UI menu structure directly inside the popup layout markup
+            const popupContent = `
+                <div class="p-2 min-w-[220px]">
+                    <span class="text-[10px] text-amber-400 uppercase tracking-widest font-mono font-bold">${node.era}</span>
+                    <h3 class="text-sm font-bold text-white mb-2 mt-0.5">${node.title}</h3>
+                    <div class="flex flex-col gap-1.5 mt-3">
+                        <button onclick="openSidebar(${node.id})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-xs font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between">
+                            <span>📄 View Records</span> <span>→</span>
+                        </button>
+                        <a href="${node.pdfUrl}" target="_blank" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-xs font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between no-underline text-inherit">
+                            <span>📥 Download PDF Summary</span> <span>↓</span>
+                        </a>
+                        <button onclick="playVideo(${node.id})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-xs font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between">
+                            <span>🎥 Play Video Presentation</span> <span>▶</span>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Bind mouse triggers to automatically show/hide menus seamlessly
+            marker.bindPopup(popupContent, { closeButton: false, offset: [0, -5] });
+            
+            // Open popup menu immediately when cursor hover touches the node point
+            marker.on('mouseover', function() {
+                this.openPopup();
+            });
+        });
+
+        // ACTION FUNCTION 1: Open Sidebar Drawer Framework
+        function openSidebar(id) {
+            const node = historicalNodes.find(n => n.id === id);
+            document.getElementById('side-era').innerText = node.era;
+            document.getElementById('side-title').innerText = node.title;
+            document.getElementById('side-description').innerText = node.summary;
+            document.getElementById('side-coords').innerText = `Coordinates: ${node.coords[0].toFixed(4)}, ${node.coords[1].toFixed(4)}`;
+            
+            document.getElementById('sidebar').classList.remove('translate-x-full');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.add('translate-x-full');
+        }
+
+        // ACTION FUNCTION 2: Play Streaming Target Video Node
+        function playVideo(id) {
+            const node = historicalNodes.find(n => n.id === id);
+            const modal = document.getElementById('video-modal');
+            const player = document.getElementById('modal-video-player');
+            
+            document.getElementById('video-title').innerText = `Historical Archive: ${node.title} (${node.era})`;
+            player.src = node.videoUrl;
+            modal.classList.remove('hidden');
+            player.play();
+        }
+
+        function closeVideo() {
+            const modal = document.getElementById('video-modal');
+            const player = document.getElementById('modal-video-player');
+            player.pause();
+            player.src = "";
+            modal.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
