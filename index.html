@@ -3,171 +3,209 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global History Atlas Prototype</title>
+    <title>Global History Atlas - Premium Edition</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Leaflet.js Mapping -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Stripe JavaScript SDK -->
+    <script src="https://js.stripe.com/v3/"></script>
     <style>
-        /* Custom dark styling for map components */
         .leaflet-popup-content-wrapper {
-            background-color: #1e1e2e !important;
+            background-color: #1a1a1e !important;
             color: #ffffff !important;
-            border-radius: 8px;
-            border: 1px solid #3e3e5e;
+            border-radius: 12px;
+            border: 1px solid #2e2e3e;
         }
-        .leaflet-popup-tip { background-color: #1e1e2e !important; }
-        /* Smooth fade effects for our panels */
+        .leaflet-popup-tip { background-color: #1a1a1e !important; }
         .transition-all { transition: all 0.3s ease-in-out; }
     </style>
 </head>
-<body class="bg-[#121214] text-gray-100 font-sans overflow-hidden h-screen w-screen flex flex-col">
+<body class="bg-[#0f0f11] text-gray-100 font-sans overflow-hidden h-screen w-screen flex flex-col">
 
-    <header class="bg-[#1a1a1e] border-b border-gray-800 p-4 flex justify-between items-center z-10">
-        <h1 class="text-xl font-bold tracking-wider text-amber-400">📜 CHRONOMAP ATLAS <span class="text-xs text-gray-500 font-mono">v1.0 MVP</span></h1>
-        <p class="text-sm text-gray-400">Hover over map markers to explore historical nodes.</p>
+    <!-- App Header Layout -->
+    <header class="bg-[#16161a] border-b border-gray-800 p-4 flex justify-between items-center z-10 shadow-md">
+        <h1 class="text-xl font-bold tracking-wider text-amber-400">📜 CHRONOMAP <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded ml-2 font-mono">PRO</span></h1>
+        
+        <!-- Status / Account Controls -->
+        <div class="flex items-center gap-3">
+            <span id="account-status-badge" class="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2.5 py-1 rounded-full font-semibold">
+                🔴 Free Account
+            </span>
+            <button onclick="openPaywall()" id="upgrade-header-btn" class="bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-black text-xs font-bold px-4 py-1.5 rounded-lg shadow cursor-pointer transition-all">
+                ⚡ Upgrade to Pro
+            </button>
+        </div>
     </header>
 
+    <!-- Map Canvas Body -->
     <div class="flex flex-1 relative overflow-hidden">
         
+        <!-- The Flat Map -->
         <div id="map" class="w-full h-full z-0"></div>
 
-        <div id="sidebar" class="absolute right-0 top-0 h-full w-96 bg-[#1a1a1e] border-l border-gray-800 z-10 translate-x-full transition-all p-6 shadow-2xl flex flex-col justify-between">
+        <!-- Right Side Information Panel -->
+        <div id="sidebar" class="absolute right-0 top-0 h-full w-96 bg-[#16161a] border-l border-gray-800 z-10 translate-x-full transition-all p-6 shadow-2xl flex flex-col justify-between">
             <div>
                 <div class="flex justify-between items-center mb-4">
-                    <span id="side-era" class="text-xs font-mono text-amber-500 uppercase tracking-widest">Era</span>
+                    <span id="side-era" class="text-xs font-mono text-amber-500 uppercase tracking-widest font-bold">Era</span>
                     <button onclick="closeSidebar()" class="text-gray-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
                 </div>
                 <h2 id="side-title" class="text-2xl font-serif text-white mb-2">Event Title</h2>
-                <p id="side-description" class="text-gray-400 text-sm leading-relaxed">Detailed event documentation goes here...</p>
+                <p id="side-description" class="text-gray-400 text-sm leading-relaxed">Details...</p>
             </div>
             <div class="pt-4 border-t border-gray-800 text-xs text-gray-500 font-mono" id="side-coords">
                 Coordinates: 0.000, 0.000
             </div>
         </div>
 
+        <!-- Interactive Video Player Modal -->
         <div id="video-modal" class="absolute inset-0 bg-black/80 z-20 hidden flex items-center justify-center p-4">
-            <div class="bg-[#1a1a1e] border border-gray-800 rounded-xl max-w-3xl w-full p-4 relative">
+            <div class="bg-[#16161a] border border-gray-800 rounded-xl max-w-3xl w-full p-4 relative shadow-2xl">
                 <button onclick="closeVideo()" class="absolute -top-10 right-0 text-white hover:text-amber-400 font-bold text-sm bg-gray-900 px-3 py-1 rounded cursor-pointer">✕ CLOSE VIDEO</button>
                 <div class="aspect-video w-full bg-black rounded flex items-center justify-center">
                     <video id="modal-video-player" class="w-full h-full rounded" controls src=""></video>
                 </div>
-                <h3 id="video-title" class="text-lg font-bold text-white mt-3">Playing Video Narrative</h3>
+                <h3 id="video-title" class="text-lg font-bold text-white mt-3">Video Presentation</h3>
+            </div>
+        </div>
+
+        <!-- PREMIUM PAYWALL MODAL -->
+        <div id="paywall-modal" class="absolute inset-0 bg-black/80 z-30 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-[#16161a] border-2 border-amber-500/40 rounded-2xl max-w-md w-full p-6 relative shadow-2xl text-center">
+                <button onclick="closePaywall()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
+                
+                <div class="w-16 h-16 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">👑</div>
+                <h3 class="text-2xl font-bold text-white font-serif">Unlock ChronoMap Pro</h3>
+                <p class="text-gray-400 text-sm mt-2 mb-6">Get unlimited access to every city on earth, historic document downloads, and high-definition dynamic video breakdowns.</p>
+                
+                <!-- Pricing Features Checklist -->
+                <div class="text-left bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6 space-y-2 text-sm text-gray-300">
+                    <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Infinite Towns:</span> Explore micro-history worldwide</div>
+                    <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Premium Videos:</span> Unlock automated video lectures</div>
+                    <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">PDF Printing:</span> One-click research exports</div>
+                </div>
+
+                <div class="text-3xl font-bold text-white mb-6">$9.00 <span class="text-xs text-gray-500 font-normal">/ month</span></div>
+                
+                <!-- Action Checkout Hook -->
+                <button onclick="simulateStripeCheckout()" class="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-black font-bold py-3 px-4 rounded-xl shadow-lg transition-all cursor-pointer">
+                    Start Your 7-Day Free Trial
+                </button>
+                <p class="text-[10px] text-gray-500 mt-3">Cancel anytime instantly with 1-click. Secured via Stripe.</p>
             </div>
         </div>
 
     </div>
 
+    <!-- Map Scripts Framework Core -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Initialize the interactive map environment
-        // we set 'crs: L.CRS.Simple' or layout a standard flat grid map projection
+        // Track user status
+        let userHasProAccess = false; 
+
+        // Set up map
         const map = L.map('map', {
-            center: [30, 20],
+            center: [34.0, 85.0],
             zoom: 3,
             minZoom: 2,
             maxZoom: 6,
             zoomControl: false
         });
 
-        // Add custom dark-mode minimal world map layer
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap & &copy; CARTO'
         }).addTo(map);
 
-        // Reposition standard zoom layout controls out of the way
         L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
-        // Dummy Dataset for Historical Prototype Nodes (The Silk Road Era)
+        // Dataset Mock Layer
         const historicalNodes = [
             {
                 id: 1,
                 title: "Chang'an Terminal (Han Dynasty)",
                 era: "130 BCE",
                 coords: [34.2631, 108.9487],
+                isPremium: false, // FREE
                 summary: "The eastern starting point of the Silk Road. Capital of the Han Dynasty where silk, jade, and secrets of manufacturing were packaged for the Western world.",
-                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-                pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
             },
             {
                 id: 2,
                 title: "The Oasis of Dunhuang",
                 era: "111 BCE",
                 coords: [40.1421, 94.6618],
+                isPremium: true, // PREMIUM
                 summary: "A vital desert crossroads where the Silk Road split to bypass the deadly Taklamakan Desert. Home to the Mogao Caves filled with massive cultural and religious art installations.",
-                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-                pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
-            },
-            {
-                id: 3,
-                title: "The Great Market of Samarkand",
-                era: "c. 300 CE",
-                coords: [39.6542, 66.9597],
-                summary: "The true midpoint of global commerce in Central Asia. Cosmopolitan hub where Islamic philosophy, Chinese papermaking techniques, and European goods fused together.",
-                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-                pdfUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
             }
         ];
 
-        // Loop through our data arrays to place markers on the flat canvas
+        // Place markers
         historicalNodes.forEach(node => {
-            // Set up a custom gold pulse marker ring 
+            const markerColor = node.isPremium ? '#a855f7' : '#fbbf24'; 
+            const borderLine = node.isPremium ? '#7e22ce' : '#d97706';
+
             const marker = L.circleMarker(node.coords, {
-                radius: 8,
-                fillColor: '#fbbf24',
-                color: '#d97706',
+                radius: 9,
+                fillColor: markerColor,
+                color: borderLine,
                 weight: 2,
                 fillOpacity: 0.8
             }).addTo(map);
 
-            // Construct the UI menu structure directly inside the popup layout markup
             const popupContent = `
                 <div class="p-2 min-w-[220px]">
-                    <span class="text-[10px] text-amber-400 uppercase tracking-widest font-mono font-bold">${node.era}</span>
-                    <h3 class="text-sm font-bold text-white mb-2 mt-0.5">${node.title}</h3>
+                    <div class="flex justify-between items-center">
+                        <span class="text-[10px] text-amber-400 uppercase tracking-widest font-mono font-bold">${node.era}</span>
+                        ${node.isPremium ? '<span class="text-[9px] bg-purple-500/20 text-purple-400 border border-purple-500/30 px-1.5 py-0.2 rounded font-bold">PRO</span>' : ''}
+                    </div>
+                    <h3 class="text-sm font-bold text-white mb-2 mt-1">${node.title}</h3>
                     <div class="flex flex-col gap-1.5 mt-3">
-                        <button onclick="openSidebar(${node.id})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-xs font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between">
+                        <button onclick="handleNodeAction('view', ${node.id})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-xs font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between">
                             <span>📄 View Records</span> <span>→</span>
                         </button>
-                        <a href="${node.pdfUrl}" target="_blank" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-xs font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between no-underline text-inherit">
-                            <span>📥 Download PDF Summary</span> <span>↓</span>
-                        </a>
-                        <button onclick="playVideo(${node.id})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-xs font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between">
-                            <span>🎥 Play Video Presentation</span> <span>▶</span>
+                        <button onclick="handleNodeAction('video', ${node.id})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-xs font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between">
+                            <span>🎥 Play Premium Video</span> <span>▶</span>
                         </button>
                     </div>
                 </div>
             `;
 
-            // Bind mouse triggers to automatically show/hide menus seamlessly
             marker.bindPopup(popupContent, { closeButton: false, offset: [0, -5] });
-            
-            // Open popup menu immediately when cursor hover touches the node point
-            marker.on('mouseover', function() {
-                this.openPopup();
-            });
+            marker.on('mouseover', function() { this.openPopup(); });
         });
 
-        // ACTION FUNCTION 1: Open Sidebar Drawer Framework
-        function openSidebar(id) {
-            const node = historicalNodes.find(n => n.id === id);
+        // Gatekeeper function
+        function handleNodeAction(actionType, nodeId) {
+            const node = historicalNodes.find(n => n.id === nodeId);
+            
+            if (node.isPremium && !userHasProAccess) {
+                openPaywall();
+                return;
+            }
+
+            if (actionType === 'view') {
+                openSidebar(node);
+            } else if (actionType === 'video') {
+                playVideo(node);
+            }
+        }
+
+        function openSidebar(node) {
             document.getElementById('side-era').innerText = node.era;
             document.getElementById('side-title').innerText = node.title;
             document.getElementById('side-description').innerText = node.summary;
             document.getElementById('side-coords').innerText = `Coordinates: ${node.coords[0].toFixed(4)}, ${node.coords[1].toFixed(4)}`;
-            
             document.getElementById('sidebar').classList.remove('translate-x-full');
         }
 
-        function closeSidebar() {
-            document.getElementById('sidebar').classList.add('translate-x-full');
-        }
+        function closeSidebar() { document.getElementById('sidebar').classList.add('translate-x-full'); }
 
-        // ACTION FUNCTION 2: Play Streaming Target Video Node
-        function playVideo(id) {
-            const node = historicalNodes.find(n => n.id === id);
+        function playVideo(node) {
             const modal = document.getElementById('video-modal');
             const player = document.getElementById('modal-video-player');
-            
-            document.getElementById('video-title').innerText = `Historical Archive: ${node.title} (${node.era})`;
+            document.getElementById('video-title').innerText = `${node.title} — Video Doc`;
             player.src = node.videoUrl;
             modal.classList.remove('hidden');
             player.play();
@@ -176,9 +214,25 @@
         function closeVideo() {
             const modal = document.getElementById('video-modal');
             const player = document.getElementById('modal-video-player');
-            player.pause();
-            player.src = "";
+            player.pause(); player.src = "";
             modal.classList.add('hidden');
+        }
+
+        function openPaywall() { document.getElementById('paywall-modal').classList.remove('hidden'); }
+        function closePaywall() { document.getElementById('paywall-modal').classList.add('hidden'); }
+
+        // STRIPIE SIMULATOR
+        function simulateStripeCheckout() {
+            closePaywall();
+            alert("💳 Redirecting to Secure Stripe Checkout Portal... \n\nProcessing sandbox payment authentication token...");
+            
+            userHasProAccess = true;
+            
+            document.getElementById('account-status-badge').innerText = "👑 PRO Member";
+            document.getElementById('account-status-badge').className = "text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full font-semibold";
+            document.getElementById('upgrade-header-btn').classList.add('hidden');
+            
+            alert("🎉 Access Granted! You are now a premium member. All pro map assets are instantly unlocked.");
         }
     </script>
 </body>
