@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global History Atlas - Chroma Search Edition</title>
+    <title>Global History Atlas - Chroma Region Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://js.stripe.com/v3/"></script>
@@ -109,18 +109,45 @@
 
         L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
-        // NEW: GENERATE UNIQUE PASTELLISH COLORS FOR COUNTRIES
-        function getCountryColor(name) {
-            let hash = 0;
-            for (let i = 0; i < name.length; i++) {
-                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+        // STRATEGY 1 CODE: CONTINENT REGION COLOR CALCULATOR
+        function getRegionColor(countryName) {
+            // Normalize country name for mapping match validation
+            const name = countryName.toLowerCase();
+
+            // Asia Region (Rich Warm Ambers & Gold)
+            if (["india", "china", "japan", "russia", "pakistan", "bangladesh", "indonesia", "thailand", "vietnam", "philippines", "malaysia", "south korea", "north korea", "mongolia", "nepal", "sri lanka", "myanmar", "cambodia", "laos", "afghanistan", "kazakhstan", "uzbekistan", "turkmenistan", "kyrgyzstan", "tajikistan"].some(c => name.includes(c))) {
+                return '#d97706'; 
             }
-            // Generate a sleek hue based on country text signature
-            const h = Math.abs(hash % 360);
-            return `hsl(${h}, 65%, 45%)`;
+            // Middle East & North Africa (Historic Sand / Desert Terracotta)
+            if (["egypt", "saudi arabia", "iran", "iraq", "turkey", "syria", "jordan", "israel", "lebanon", "oman", "yemen", "uae", "qatar", "kuwait", "morocco", "algeria", "tunisia", "libya", "sudan"].some(c => name.includes(c))) {
+                return '#c2410c'; 
+            }
+            // Europe (Classic Imperial Deep Royal Blues)
+            if (["united kingdom", "france", "germany", "italy", "spain", "portugal", "poland", "ukraine", "romania", "greece", "sweden", "norway", "finland", "ireland", "belgium", "netherlands", "switzerland", "austria", "czech", "slovakia", "hungary", "bulgaria", "croatia", "serbia", "denmark"].some(c => name.includes(c))) {
+                return '#2563eb'; 
+            }
+            // Africa (Vibrant Rich Emerald Green)
+            if (["nigeria", "ethiopia", "kenya", "south africa", "ghana", "tanzania", "uganda", "congo", "angola", "mozambique", "madagascar", "ivory coast", "cameroon", "niger", "mali", "senegal", "zimbabwe", "zambia", "somalia", "namibia", "botswana"].some(c => name.includes(c))) {
+                return '#059669'; 
+            }
+            // North America (Crimson Red & Deep Reds)
+            if (["united states", "canada", "mexico", "cuba", "guatemala", "honduras", "panama", "costa rica", "jamaica", "haiti", "dominican republic"].some(c => name.includes(c))) {
+                return '#dc2626'; 
+            }
+            // South America (Vibrant Electric Violet/Purple)
+            if (["brazil", "argentina", "colombia", "peru", "venezuela", "chile", "ecuador", "bolivia", "paraguay", "uruguay", "guyana", "suriname"].some(c => name.includes(c))) {
+                return '#7c3aed'; 
+            }
+            // Oceania (Deep Aquamarine / Teal)
+            if (["australia", "new zealand", "papua new guinea", "fiji", "solomon islands", "vanuatu", "samoa"].some(c => name.includes(c))) {
+                return '#0891b2'; 
+            }
+
+            // Fallback default color for islands/unmapped zones (Clean Charcoal Gray)
+            return '#4b5563';
         }
 
-        // NEW: FETCH AND APPLY INTERACTIVE COUNTRY BORDERS LAYER
+        // FETCH AND APPLY INTERACTIVE STRATEGY 1 MAP OVERLAYS
         async function loadCountryBorders() {
             try {
                 const res = await fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json');
@@ -129,17 +156,21 @@
                 countriesLayer = L.geoJson(geoData, {
                     style: function(feature) {
                         return {
-                            fillColor: getCountryColor(feature.properties.name),
-                            weight: 1,
-                            opacity: 0.6,
-                            color: '#2e2e3e', // border lines
-                            fillOpacity: 0.18 // Subtle transparent coloring
+                            fillColor: getRegionColor(feature.properties.name),
+                            weight: 1.5,          // Crisp border width lines
+                            opacity: 0.8,         // Sharp boundary visibility
+                            color: '#555566',     // Bright silver/grey country outlines
+                            fillOpacity: 0.45     // Boosted brightness opacity from 0.18 so the map glows!
                         };
                     },
                     onEachFeature: function(feature, layer) {
                         layer.on({
                             mouseover: function(e) {
-                                e.target.setStyle({ fillOpacity: 0.4, weight: 2, color: '#fbbf24' });
+                                e.target.setStyle({ 
+                                    fillOpacity: 0.7, 
+                                    weight: 2.5, 
+                                    color: '#fbbf24' // Highlights gold on finger touch/hover
+                                });
                             },
                             mouseout: function(e) {
                                 countriesLayer.resetStyle(e.target);
@@ -248,13 +279,4 @@
             
             const proText = "👑 PRO Member";
             document.getElementById('account-status-badge').innerText = proText;
-            document.getElementById('account-status-badge').className = "text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full font-semibold";
-            document.getElementById('account-status-badge-mobile').innerText = "👑 PRO";
-            document.getElementById('account-status-badge-mobile').className = "text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold";
-            document.getElementById('upgrade-header-btn').classList.add('hidden');
-            
-            alert("🎉 Upgrade Success! Local history databases and synthesis tools are completely active.");
-        }
-    </script>
-</body>
-</html>
+            document.getElementById('account-status-badge').className = "text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5
