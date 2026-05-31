@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global History Atlas - Chroma Region Edition</title>
+    <title>Global History Atlas - Permanent Label Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://js.stripe.com/v3/"></script>
@@ -17,17 +17,17 @@
         .leaflet-popup-tip { background-color: #1a1a1e !important; }
         .transition-all { transition: all 0.3s ease-in-out; }
         
-        /* Premium custom styling for floating country text labels */
+        /* UPDATED: Sleek, static, minimal permanent background labels */
         .country-label {
-            background: rgba(22, 22, 26, 0.95) !important;
-            border: 1px solid #fbbf24 !important;
-            color: #ffffff !important;
-            font-weight: bold !important;
-            font-family: monospace !important;
-            font-size: 11px !important;
-            padding: 4px 8px !important;
-            border-radius: 6px !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
+            background: transparent !important;
+            border: none !important;
+            color: rgba(255, 255, 255, 0.75) !important; /* Soft white glow text */
+            font-weight: 600 !important;
+            font-family: sans-serif !important;
+            font-size: 10px !important;
+            text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.9), 1px 1px 2px rgba(0,0,0,1) !important; /* Dark text shadow so it reads clearly over colors */
+            box-shadow: none !important;
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -166,14 +166,16 @@
                         };
                     },
                     onEachFeature: function(feature, layer) {
-                        const countryName = feature.properties.name || feature.properties.name_long || "Unknown Territory";
+                        const countryName = feature.properties.name || feature.properties.name_long || "";
                         
-                        // NEW UPGRADE: Attach interactive floating labels to every single country feature
-                        layer.bindTooltip(countryName, {
-                            sticky: true,            // Makes the label follow your touch/mouse precisely
-                            direction: 'auto',       // Dynamically positions label window safely inside viewport
-                            className: 'country-label' // Applies premium style template rules
-                        });
+                        // FIXED: Tooltip options set to permanently display on load
+                        if (countryName) {
+                            layer.bindTooltip(countryName, {
+                                permanent: true,    // Restores label layout on execution instantly 
+                                direction: 'center', // Centers text geometry perfectly inside country polygon coordinates
+                                className: 'country-label'
+                            });
+                        }
 
                         layer.on({
                             mouseover: function(e) {
