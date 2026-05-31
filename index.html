@@ -16,6 +16,19 @@
         }
         .leaflet-popup-tip { background-color: #1a1a1e !important; }
         .transition-all { transition: all 0.3s ease-in-out; }
+        
+        /* Premium custom styling for floating country text labels */
+        .country-label {
+            background: rgba(22, 22, 26, 0.95) !important;
+            border: 1px solid #fbbf24 !important;
+            color: #ffffff !important;
+            font-weight: bold !important;
+            font-family: monospace !important;
+            font-size: 11px !important;
+            padding: 4px 8px !important;
+            border-radius: 6px !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5) !important;
+        }
     </style>
 </head>
 <body class="bg-[#0f0f11] text-gray-100 font-sans overflow-hidden h-screen w-screen flex flex-col">
@@ -93,7 +106,6 @@
         let searchMarker = null;
         let countriesLayer = null;
 
-        // Set up flat canvas map grid
         const map = L.map('map', {
             center: [22.0, 78.0],
             zoom: 4,
@@ -102,51 +114,41 @@
             zoomControl: false
         });
 
-        // Dark underlying map styling layer
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap & &copy; CARTO'
         }).addTo(map);
 
         L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
-        // CONTINENT REGION COLOR CALCULATOR
         function getRegionColor(countryName) {
             if (!countryName) return '#4b5563';
             const name = countryName.toLowerCase();
 
-            // Asia Region (Warm Golden Amber)
             if (["india", "china", "japan", "russia", "pakistan", "bangladesh", "indonesia", "thailand", "vietnam", "philippines", "malaysia", "korea", "mongolia", "nepal", "sri lanka", "myanmar", "cambodia", "laos", "kazakhstan", "uzbekistan", "turkmenistan", "kyrgyzstan", "tajikistan"].some(c => name.includes(c))) {
                 return '#d97706'; 
             }
-            // Middle East & North Africa (Historic Terracotta Orange)
             if (["egypt", "saudi", "iran", "iraq", "turkey", "syria", "jordan", "israel", "lebanon", "oman", "yemen", "emirates", "uae", "qatar", "kuwait", "morocco", "algeria", "tunisia", "libya", "sudan"].some(c => name.includes(c))) {
                 return '#c2410c'; 
             }
-            // Europe (Deep Royal Imperial Blues)
             if (["united kingdom", "france", "germany", "italy", "spain", "portugal", "poland", "ukraine", "romania", "greece", "sweden", "norway", "finland", "ireland", "belgium", "netherlands", "switzerland", "austria", "czech", "slovakia", "hungary", "bulgaria", "croatia", "serbia", "denmark"].some(c => name.includes(c))) {
                 return '#2563eb'; 
             }
-            // Africa (Rich Emerald Green)
             if (["nigeria", "ethiopia", "kenya", "south africa", "ghana", "tanzania", "uganda", "congo", "angola", "mozambique", "madagascar", "cameroon", "niger", "mali", "senegal", "zimbabwe", "zambia", "somalia", "namibia", "botswana"].some(c => name.includes(c))) {
                 return '#059669'; 
             }
-            // North America (Crimson Red)
             if (["united states", "america", "canada", "mexico", "cuba", "guatemala", "honduras", "panama", "costa"].some(c => name.includes(c))) {
                 return '#dc2626'; 
             }
-            // South America (Vibrant Electric Violet/Purple)
             if (["brazil", "argentina", "colombia", "peru", "venezuela", "chile", "ecuador", "bolivia", "paraguay", "uruguay"].some(c => name.includes(c))) {
                 return '#7c3aed'; 
             }
-            // Oceania (Deep Aquamarine / Teal)
             if (["australia", "new zealand", "papua", "fiji", "solomon", "samoa"].some(c => name.includes(c))) {
                 return '#0891b2'; 
             }
 
-            return '#4b5563'; // Default Gray fallback for small islands
+            return '#4b5563';
         }
 
-        // FIXED BOUNDS LOADER: Fetches reliable, standardized global map coordinate geometries
         async function loadCountryBorders() {
             try {
                 const res = await fetch('https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson');
@@ -154,17 +156,25 @@
 
                 countriesLayer = L.geoJson(geoData, {
                     style: function(feature) {
-                        // FIXED: Correct property mapping reference for matching names
                         const countryName = feature.properties.name || feature.properties.name_long;
                         return {
                             fillColor: getRegionColor(countryName),
                             weight: 1.5,          
                             opacity: 0.7,         
-                            color: '#444455',     // Silver country outline borders
-                            fillOpacity: 0.42     // Increased opacity value so colors pop vividly on phone displays
+                            color: '#444455',     
+                            fillOpacity: 0.42     
                         };
                     },
                     onEachFeature: function(feature, layer) {
+                        const countryName = feature.properties.name || feature.properties.name_long || "Unknown Territory";
+                        
+                        // NEW UPGRADE: Attach interactive floating labels to every single country feature
+                        layer.bindTooltip(countryName, {
+                            sticky: true,            // Makes the label follow your touch/mouse precisely
+                            direction: 'auto',       // Dynamically positions label window safely inside viewport
+                            className: 'country-label' // Applies premium style template rules
+                        });
+
                         layer.on({
                             mouseover: function(e) {
                                 e.target.setStyle({ fillOpacity: 0.65, weight: 2.5, color: '#fbbf24' });
@@ -277,7 +287,7 @@
             document.getElementById('account-status-badge').innerText = proText;
             document.getElementById('account-status-badge').className = "text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full font-semibold";
             document.getElementById('account-status-badge-mobile').innerText = "👑 PRO";
-            document.getElementById('account-status-badge-mobile').className = "text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold";
+            document.getElementById('account-status-badge-mobile').className = "text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full font-semibold";
             document.getElementById('upgrade-header-btn').classList.add('hidden');
             
             alert("🎉 Upgrade Success! Local history databases and synthesis tools are completely active.");
