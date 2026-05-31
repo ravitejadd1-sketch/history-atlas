@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global History Atlas - Premium Edition</title>
-    <!-- Tailwind CSS -->
+    <title>Global History Atlas - Search Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Leaflet.js Mapping -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Stripe JavaScript SDK -->
     <script src="https://js.stripe.com/v3/"></script>
     <style>
         .leaflet-popup-content-wrapper {
@@ -23,12 +20,21 @@
 </head>
 <body class="bg-[#0f0f11] text-gray-100 font-sans overflow-hidden h-screen w-screen flex flex-col">
 
-    <!-- App Header Layout -->
-    <header class="bg-[#16161a] border-b border-gray-800 p-4 flex justify-between items-center z-10 shadow-md">
-        <h1 class="text-xl font-bold tracking-wider text-amber-400">📜 CHRONOMAP <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded ml-2 font-mono">PRO</span></h1>
+    <header class="bg-[#16161a] border-b border-gray-800 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between z-10 shadow-md">
+        <div class="flex items-center justify-between">
+            <h1 class="text-xl font-bold tracking-wider text-amber-400">📜 CHRONOMAP <span class="text-xs bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded ml-2 font-mono">PRO</span></h1>
+            
+            <div class="flex items-center gap-2 sm:hidden">
+                <span id="account-status-badge-mobile" class="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full font-semibold">🔴 Free</span>
+            </div>
+        </div>
+
+        <div class="flex flex-1 max-w-md mx-auto sm:mx-4 w-full">
+            <input type="text" id="search-input" placeholder="Search any town or city on Earth..." class="w-full bg-gray-900 border border-gray-700 rounded-l-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors">
+            <button onclick="searchCity()" class="bg-amber-500 hover:bg-amber-600 text-black font-bold px-4 rounded-r-lg text-sm transition-colors cursor-pointer">🔍</button>
+        </div>
         
-        <!-- Status / Account Controls -->
-        <div class="flex items-center gap-3">
+        <div class="hidden sm:flex items-center gap-3">
             <span id="account-status-badge" class="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2.5 py-1 rounded-full font-semibold">
                 🔴 Free Account
             </span>
@@ -38,14 +44,11 @@
         </div>
     </header>
 
-    <!-- Map Canvas Body -->
     <div class="flex flex-1 relative overflow-hidden">
         
-        <!-- The Flat Map -->
         <div id="map" class="w-full h-full z-0"></div>
 
-        <!-- Right Side Information Panel -->
-        <div id="sidebar" class="absolute right-0 top-0 h-full w-96 bg-[#16161a] border-l border-gray-800 z-10 translate-x-full transition-all p-6 shadow-2xl flex flex-col justify-between">
+        <div id="sidebar" class="absolute right-0 top-0 h-full w-full sm:w-96 bg-[#16161a] border-l border-gray-800 z-10 translate-x-full transition-all p-6 shadow-2xl flex flex-col justify-between">
             <div>
                 <div class="flex justify-between items-center mb-4">
                     <span id="side-era" class="text-xs font-mono text-amber-500 uppercase tracking-widest font-bold">Era</span>
@@ -59,7 +62,6 @@
             </div>
         </div>
 
-        <!-- Interactive Video Player Modal -->
         <div id="video-modal" class="absolute inset-0 bg-black/80 z-20 hidden flex items-center justify-center p-4">
             <div class="bg-[#16161a] border border-gray-800 rounded-xl max-w-3xl w-full p-4 relative shadow-2xl">
                 <button onclick="closeVideo()" class="absolute -top-10 right-0 text-white hover:text-amber-400 font-bold text-sm bg-gray-900 px-3 py-1 rounded cursor-pointer">✕ CLOSE VIDEO</button>
@@ -70,7 +72,6 @@
             </div>
         </div>
 
-        <!-- PREMIUM PAYWALL MODAL -->
         <div id="paywall-modal" class="absolute inset-0 bg-black/80 z-30 hidden flex items-center justify-center p-4 backdrop-blur-sm">
             <div class="bg-[#16161a] border-2 border-amber-500/40 rounded-2xl max-w-md w-full p-6 relative shadow-2xl text-center">
                 <button onclick="closePaywall()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold cursor-pointer">✕</button>
@@ -79,7 +80,6 @@
                 <h3 class="text-2xl font-bold text-white font-serif">Unlock ChronoMap Pro</h3>
                 <p class="text-gray-400 text-sm mt-2 mb-6">Get unlimited access to every city on earth, historic document downloads, and high-definition dynamic video breakdowns.</p>
                 
-                <!-- Pricing Features Checklist -->
                 <div class="text-left bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6 space-y-2 text-sm text-gray-300">
                     <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Infinite Towns:</span> Explore micro-history worldwide</div>
                     <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Premium Videos:</span> Unlock automated video lectures</div>
@@ -88,7 +88,6 @@
 
                 <div class="text-3xl font-bold text-white mb-6">$9.00 <span class="text-xs text-gray-500 font-normal">/ month</span></div>
                 
-                <!-- Action Checkout Hook -->
                 <button onclick="simulateStripeCheckout()" class="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-black font-bold py-3 px-4 rounded-xl shadow-lg transition-all cursor-pointer">
                     Start Your 7-Day Free Trial
                 </button>
@@ -98,18 +97,17 @@
 
     </div>
 
-    <!-- Map Scripts Framework Core -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Track user status
         let userHasProAccess = false; 
+        let searchMarker = null;
 
-        // Set up map
+        // Set up map centered over India coordinates initially
         const map = L.map('map', {
-            center: [34.0, 85.0],
-            zoom: 3,
+            center: [22.0, 78.0],
+            zoom: 5,
             minZoom: 2,
-            maxZoom: 6,
+            maxZoom: 18, // Extended zoom bounds so you can zoom right into street layers
             zoomControl: false
         });
 
@@ -119,79 +117,92 @@
 
         L.control.zoom({ position: 'bottomleft' }).addTo(map);
 
-        // Dataset Mock Layer
-        const historicalNodes = [
-            {
-                id: 1,
-                title: "Chang'an Terminal (Han Dynasty)",
-                era: "130 BCE",
-                coords: [34.2631, 108.9487],
-                isPremium: false, // FREE
-                summary: "The eastern starting point of the Silk Road. Capital of the Han Dynasty where silk, jade, and secrets of manufacturing were packaged for the Western world.",
-                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
-            },
-            {
-                id: 2,
-                title: "The Oasis of Dunhuang",
-                era: "111 BCE",
-                coords: [40.1421, 94.6618],
-                isPremium: true, // PREMIUM
-                summary: "A vital desert crossroads where the Silk Road split to bypass the deadly Taklamakan Desert. Home to the Mogao Caves filled with massive cultural and religious art installations.",
-                videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4"
-            }
-        ];
-
-        // Place markers
-        historicalNodes.forEach(node => {
-            const markerColor = node.isPremium ? '#a855f7' : '#fbbf24'; 
-            const borderLine = node.isPremium ? '#7e22ce' : '#d97706';
-
-            const marker = L.circleMarker(node.coords, {
-                radius: 9,
-                fillColor: markerColor,
-                color: borderLine,
-                weight: 2,
-                fillOpacity: 0.8
-            }).addTo(map);
-
-            const popupContent = `
-                <div class="p-2 min-w-[220px]">
-                    <div class="flex justify-between items-center">
-                        <span class="text-[10px] text-amber-400 uppercase tracking-widest font-mono font-bold">${node.era}</span>
-                        ${node.isPremium ? '<span class="text-[9px] bg-purple-500/20 text-purple-400 border border-purple-500/30 px-1.5 py-0.2 rounded font-bold">PRO</span>' : ''}
-                    </div>
-                    <h3 class="text-sm font-bold text-white mb-2 mt-1">${node.title}</h3>
-                    <div class="flex flex-col gap-1.5 mt-3">
-                        <button onclick="handleNodeAction('view', ${node.id})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-xs font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between">
-                            <span>📄 View Records</span> <span>→</span>
-                        </button>
-                        <button onclick="handleNodeAction('video', ${node.id})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-xs font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between">
-                            <span>🎥 Play Premium Video</span> <span>▶</span>
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            marker.bindPopup(popupContent, { closeButton: false, offset: [0, -5] });
-            marker.on('mouseover', function() { this.openPopup(); });
+        // Add Enter key listener for the search input box
+        document.getElementById('search-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchCity();
         });
 
-        // Gatekeeper function
-        function handleNodeAction(actionType, nodeId) {
-            const node = historicalNodes.find(n => n.id === nodeId);
-            
-            if (node.isPremium && !userHasProAccess) {
+        // NEW FEATURE: ASYNC SEARCH ENGINE
+        async function searchCity() {
+            const query = document.getElementById('search-input').value.trim();
+            if (!query) return;
+
+            try {
+                // Fetch physical location data parameters from open public records
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat);
+                    const lon = parseFloat(data[0].lon);
+                    const displayName = data[0].display_name.split(',')[0]; // Extract clean short city name
+
+                    // Clear any previous custom search target pin
+                    if (searchMarker) map.removeLayer(searchMarker);
+
+                    // Map flies straight to the searched town!
+                    map.flyTo([lat, lon], 12, { animate: true, duration: 2.0 });
+
+                    // Generate dynamic historical context for the town
+                    // (This mock layer handles the structure until we hook up our real AI API endpoint keys next)
+                    const isPremiumTown = true; // Small local towns require Pro tier
+
+                    searchMarker = L.circleMarker([lat, lon], {
+                        radius: 10,
+                        fillColor: '#a855f7', // Purple Pro node
+                        color: '#7e22ce',
+                        weight: 3,
+                        fillOpacity: 0.9
+                    }).addTo(map);
+
+                    const popupContent = `
+                        <div class="p-2 min-w-[220px]">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] text-purple-400 uppercase tracking-widest font-mono font-bold">Local Micro-History</span>
+                                <span class="text-[9px] bg-purple-500/20 text-purple-400 border border-purple-500/30 px-1.5 py-0.2 rounded font-bold">PRO</span>
+                            </div>
+                            <h3 class="text-sm font-bold text-white mb-1 mt-1">${displayName}</h3>
+                            <p class="text-[11px] text-gray-400 mb-2">Coordinates: ${lat.toFixed(3)}, ${lon.toFixed(3)}</p>
+                            <div class="flex flex-col gap-1.5 mt-2">
+                                <button onclick="handleSearchNodeAction('view', '${displayName}', ${lat}, ${lon})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-xs font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between">
+                                    <span>📜 Synthesize Local AI Records</span> <span>→</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+
+                    searchMarker.bindPopup(popupContent, { closeButton: false, offset: [0, -5] });
+                    
+                    // Delay popup slightly until the camera flying movement finishes
+                    setTimeout(() => { searchMarker.openPopup(); }, 2200);
+
+                } else {
+                    alert("⚠️ Town not found. Check your spelling and try adding the country name (e.g., 'Bhopal, India').");
+                }
+            } catch (error) {
+                console.error("Search Error:", error);
+                alert("Network timeout tracking coordinates database.");
+            }
+        }
+
+        // Gatekeeper routing for searched towns
+        function handleSearchNodeAction(actionType, cityName, lat, lon) {
+            if (!userHasProAccess) {
                 openPaywall();
                 return;
             }
 
-            if (actionType === 'view') {
-                openSidebar(node);
-            } else if (actionType === 'video') {
-                playVideo(node);
-            }
+            // If Pro is unlocked, build out the local structural response layout
+            const simulatedAINode = {
+                title: `${cityName} Chronicles`,
+                era: "Dynamic History",
+                summary: `This dashboard displays the automated local heritage analysis for ${cityName}. Situated at geographical coordinates ${lat.toFixed(4)} N, ${lon.toFixed(4)} E, this location served as a central operational node across historic regional trade grids, evolving continuously into its modern infrastructure.`,
+                coords: [lat, lon]
+            };
+            openSidebar(simulatedAINode);
         }
 
+        // Standard Sidebar controls
         function openSidebar(node) {
             document.getElementById('side-era').innerText = node.era;
             document.getElementById('side-title').innerText = node.title;
@@ -201,38 +212,24 @@
         }
 
         function closeSidebar() { document.getElementById('sidebar').classList.add('translate-x-full'); }
-
-        function playVideo(node) {
-            const modal = document.getElementById('video-modal');
-            const player = document.getElementById('modal-video-player');
-            document.getElementById('video-title').innerText = `${node.title} — Video Doc`;
-            player.src = node.videoUrl;
-            modal.classList.remove('hidden');
-            player.play();
-        }
-
-        function closeVideo() {
-            const modal = document.getElementById('video-modal');
-            const player = document.getElementById('modal-video-player');
-            player.pause(); player.src = "";
-            modal.classList.add('hidden');
-        }
-
         function openPaywall() { document.getElementById('paywall-modal').classList.remove('hidden'); }
         function closePaywall() { document.getElementById('paywall-modal').classList.add('hidden'); }
 
-        // STRIPIE SIMULATOR
+        // Stripe Simulator Integration Hook
         function simulateStripeCheckout() {
             closePaywall();
-            alert("💳 Redirecting to Secure Stripe Checkout Portal... \n\nProcessing sandbox payment authentication token...");
-            
+            alert("💳 Connecting to Stripe Secure Gateway checkout session...");
             userHasProAccess = true;
             
-            document.getElementById('account-status-badge').innerText = "👑 PRO Member";
+            // Update all Desktop + Mobile badge UI states
+            const proText = "👑 PRO Member";
+            document.getElementById('account-status-badge').innerText = proText;
             document.getElementById('account-status-badge').className = "text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full font-semibold";
+            document.getElementById('account-status-badge-mobile').innerText = "👑 PRO";
+            document.getElementById('account-status-badge-mobile').className = "text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold";
             document.getElementById('upgrade-header-btn').classList.add('hidden');
             
-            alert("🎉 Access Granted! You are now a premium member. All pro map assets are instantly unlocked.");
+            alert("🎉 Premium tier successfully authenticated! AI generation models are now fully active.");
         }
     </script>
 </body>
