@@ -20,7 +20,7 @@
         .country-label {
             background: transparent !important;
             border: none !important;
-            color: rgba(255, 255, 255, 0.75) !important;
+            color: rgba(255, 255, 255, 0.55) !important;
             font-weight: 600 !important;
             font-family: sans-serif !important;
             font-size: 10px !important;
@@ -133,20 +133,83 @@
         let userHasProAccess = false; 
         let searchMarker = null;
         let countriesLayer = null;
+        let map = null;
 
-        const map = L.map('map', {
-            center: [22.0, 78.0],
-            zoom: 4,
-            minZoom: 2,
-            maxZoom: 15,
-            zoomControl: false
+        // Static Master Database
+        const defaultHistoricalPins = [
+            { name: "Rome", coords: [41.9028, 12.4964], type: "capital" },
+            { name: "Pataliputra (Patna)", coords: [25.6112, 85.1414], type: "capital" },
+            { name: "Constantinople (Istanbul)", coords: [41.0082, 28.9784], type: "capital" },
+            { name: "Xi'an", coords: [34.3416, 108.9398], type: "capital" },
+            { name: "Athens", coords: [37.9838, 23.7275], type: "capital" },
+            { name: "Alexandria", coords: [31.2001, 29.9187], type: "capital" },
+            { name: "Kyoto", coords: [35.0116, 135.7681], type: "capital" },
+            { name: "Carthage", coords: [36.8529, 10.3307], type: "capital" },
+            { name: "Babylon", coords: [32.5355, 44.4246], type: "capital" },
+            { name: "Cuzco", coords: [-13.5320, -71.9675], type: "capital" },
+            { name: "Battle of Cannae", coords: [41.2962, 16.1492], type: "battle" },
+            { name: "Battle of Panipat", coords: [29.3909, 76.9635], type: "battle" },
+            { name: "Battle of Waterloo", coords: [50.6865, 4.4111], type: "battle" },
+            { name: "Giza Pyramids", coords: [29.9792, 31.1342], type: "wonder" },
+            { name: "Taj Mahal", coords: [27.1751, 78.0421], type: "wonder" },
+            { name: "Machu Picchu", coords: [-13.1631, -72.5450], type: "wonder" },
+            { name: "Great Wall Pass (Mutianyu)", coords: [40.4319, 116.5704], type: "wonder" }
+        ];
+
+        // FIXED STRUCTURAL INITIALIZATION: Fires sequentially when container DOM parses
+        document.addEventListener("DOMContentLoaded", function() {
+            map = L.map('map', {
+                center: [25.0, 35.0], 
+                zoom: 3,
+                minZoom: 2,
+                maxZoom: 15,
+                zoomControl: false
+            });
+
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; OpenStreetMap & &copy; CARTO'
+            }).addTo(map);
+
+            L.control.zoom({ position: 'bottomleft' }).addTo(map);
+
+            // Execute layered layout asset requests cleanly
+            loadCountryBorders();
+            loadDefaultHistoricalNodes();
         });
 
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap & &copy; CARTO'
-        }).addTo(map);
+        function loadDefaultHistoricalNodes() {
+            defaultHistoricalPins.forEach(pin => {
+                let nodeColor = '#fbbf24'; 
+                if (pin.type === "battle") nodeColor = '#dc2626'; 
+                if (pin.type === "wonder") nodeColor = '#10b981'; 
 
-        L.control.zoom({ position: 'bottomleft' }).addTo(map);
+                const marker = L.circleMarker(pin.coords, {
+                    radius: 7,
+                    fillColor: nodeColor,
+                    color: '#ffffff',
+                    weight: 1.5,
+                    fillOpacity: 0.85
+                }).addTo(map);
+
+                const popupContent = `
+                    <div class="p-2 min-w-[210px]">
+                        <div class="flex justify-between items-center">
+                            <span class="text-[9px] text-amber-400 uppercase tracking-widest font-mono font-bold">${pin.type} Landmark</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-white mb-1 mt-0.5">${pin.name}</h3>
+                        <div class="flex flex-col gap-1.5 mt-2">
+                            <button onclick="handleSearchNodeAction('view', '${pin.name}', ${pin.coords[0]}, ${pin.coords[1]})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between">
+                                <span>📜 Synthesize AI Timeline</span> <span>→</span>
+                            </button>
+                            <button onclick="playHistoricalVideo('${pin.name}')" class="w-full text-left bg-purple-950 hover:bg-purple-800 text-white text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between border border-purple-500/30">
+                                <span>🎥 Play Cinematic Video</span> <span>▶</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                marker.bindPopup(popupContent, { closeButton: false });
+            });
+        }
 
         function getRegionColor(countryName) {
             if (!countryName) return '#4b5563';
@@ -220,8 +283,6 @@
                 console.error("Error loading boundary layer assets:", err);
             }
         }
-        
-        loadCountryBorders();
 
         const parityPricingIndex = {
             "IN": { symbol: "₹", amount: "199", currency: "INR" },   
@@ -255,10 +316,6 @@
                 document.getElementById('gemini-key-input').value = savedKey;
             }
         }
-
-        document.getElementById('search-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') searchCity();
-        });
 
         function saveDeveloperKeys() {
             const keyVal = document.getElementById('gemini-key-input').value.trim();
@@ -296,7 +353,6 @@
                         fillOpacity: 0.9
                     }).addTo(map);
 
-                    // INCLUDED BOTH LAYOUT OPTIONS: AI Synthesis Button + Video Playback Button!
                     const popupContent = `
                         <div class="p-2 min-w-[220px]">
                             <div class="flex justify-between items-center">
@@ -328,16 +384,12 @@
             }
         }
 
-        // INCLUDED: VIDEO TRIGGERS & PLAYER CONTROLS
         function playHistoricalVideo(cityName) {
             if (!userHasProAccess) {
                 openPaywall();
                 return;
             }
-            
-            // Wire up our high-definition sample CDN stream file
             const videoUrl = "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4";
-            
             document.getElementById('video-modal-title').innerText = `${cityName} - Archive Cinematic Reel`;
             const player = document.getElementById('modal-video-player');
             player.src = videoUrl;
@@ -348,11 +400,10 @@
         function closeVideoModal() {
             const player = document.getElementById('modal-video-player');
             player.pause();
-            player.src = ""; // Unbind element memory traces
+            player.src = ""; 
             document.getElementById('video-modal').classList.add('hidden');
         }
 
-        // LIVE DYNAMIC GEMINI ENDPOINT CORE
         async function handleSearchNodeAction(actionType, cityName, lat, lon) {
             if (!userHasProAccess) {
                 openPaywall();
@@ -372,4 +423,58 @@
             document.getElementById('sidebar').classList.remove('translate-x-full');
 
             try {
-                const targetPrompt = `Provide a deeply compelling chronological timeline micro-history breakdown for the location: ${cityName} situated at geographic coordinates latitude ${lat}, longitude ${lon
+                const targetPrompt = `Provide a deeply compelling chronological timeline micro-history breakdown for the location: ${cityName} situated at geographic coordinates latitude ${lat}, longitude ${lon}. Split the analysis into 3 distinct historic eras (e.g. Ancient Roots, Medieval Transitions, Modern Evolution). For each era, summarize major battles, structural transformations, empire shifting, and local myths. Format cleanly using spacing and simple paragraphs. Be historical, epic, and highly informative.`;
+                const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${developerApiKey}`;
+                
+                const fetchParams = {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: targetPrompt }] }]
+                    })
+                };
+
+                const response = await fetch(endpointUrl, fetchParams);
+                const resultsJson = await response.json();
+
+                if(resultsJson.candidates && resultsJson.candidates[0].content.parts[0].text) {
+                    const realAITextOutput = resultsJson.candidates[0].content.parts[0].text;
+                    document.getElementById('side-era').innerText = "Chronicle Complete";
+                    document.getElementById('side-description').innerText = realAITextOutput;
+                } else {
+                    document.getElementById('side-description').innerText = "⚠️ Google endpoint rejected content framing syntax loops. Verify API Key validation strings.";
+                }
+
+            } catch (err) {
+                console.error("AI Node Breakdown Error:", err);
+                document.getElementById('side-description').innerText = "⚠️ Connection timeout tracking text streaming servers.";
+            }
+        }
+
+        function openSidebar(node) {
+            document.getElementById('side-era').innerText = node.era;
+            document.getElementById('side-title').innerText = node.title;
+            document.getElementById('side-description').innerText = node.summary;
+            document.getElementById('side-coords').innerText = `Coordinates: ${node.coords[0].toFixed(4)}, ${node.coords[1].toFixed(4)}`;
+            document.getElementById('sidebar').classList.remove('translate-x-full');
+        }
+
+        function closeSidebar() { document.getElementById('sidebar').classList.add('translate-x-full'); }
+
+        function simulateStripeCheckout() {
+            closePaywall();
+            alert("CC Gateway Approved...");
+            userHasProAccess = true;
+            
+            const proText = "👑 PRO Member";
+            document.getElementById('account-status-badge').innerText = proText;
+            document.getElementById('account-status-badge').className = "text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full font-semibold";
+            document.getElementById('account-status-badge-mobile').innerText = "👑 PRO";
+            document.getElementById('account-status-badge-mobile').className = "text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full font-semibold";
+            document.getElementById('upgrade-header-btn').classList.add('hidden');
+            
+            alert("🎉 Upgrade Success! Local history databases and synthesis tools are completely active.");
+        }
+    </script>
+</body>
+</html>
