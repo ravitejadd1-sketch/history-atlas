@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global History Atlas - Permanent Label Edition</title>
+    <title>Global History Atlas - Parity Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://js.stripe.com/v3/"></script>
@@ -17,15 +17,15 @@
         .leaflet-popup-tip { background-color: #1a1a1e !important; }
         .transition-all { transition: all 0.3s ease-in-out; }
         
-        /* UPDATED: Sleek, static, minimal permanent background labels */
+        /* Permanent country geographic labels styling */
         .country-label {
             background: transparent !important;
             border: none !important;
-            color: rgba(255, 255, 255, 0.75) !important; /* Soft white glow text */
+            color: rgba(255, 255, 255, 0.75) !important;
             font-weight: 600 !important;
             font-family: sans-serif !important;
             font-size: 10px !important;
-            text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.9), 1px 1px 2px rgba(0,0,0,1) !important; /* Dark text shadow so it reads clearly over colors */
+            text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.9), 1px 1px 2px rgba(0,0,0,1) !important;
             box-shadow: none !important;
             white-space: nowrap;
         }
@@ -85,11 +85,13 @@
                 
                 <div class="text-left bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6 space-y-2 text-sm text-gray-300">
                     <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Infinite Towns:</span> Explore micro-history worldwide</div>
-                    <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Colorful Borders:</span> Access distinct regional maps</div>
+                    <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Localized Pricing:</span> Fair regional rates active</div>
                     <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">PDF Printing:</span> One-click research exports</div>
                 </div>
 
-                <div class="text-3xl font-bold text-white mb-6">$9.00 <span class="text-xs text-gray-500 font-normal">/ month</span></div>
+                <div id="paywall-price-box" class="text-3xl font-bold text-white mb-6">
+                    $5.00 <span class="text-xs text-gray-500 font-normal">/ month (USD)</span>
+                </div>
                 
                 <button onclick="simulateStripeCheckout()" class="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-black font-bold py-3 px-4 rounded-xl shadow-lg transition-all cursor-pointer">
                     Start Your 7-Day Free Trial
@@ -167,12 +169,10 @@
                     },
                     onEachFeature: function(feature, layer) {
                         const countryName = feature.properties.name || feature.properties.name_long || "";
-                        
-                        // FIXED: Tooltip options set to permanently display on load
                         if (countryName) {
                             layer.bindTooltip(countryName, {
-                                permanent: true,    // Restores label layout on execution instantly 
-                                direction: 'center', // Centers text geometry perfectly inside country polygon coordinates
+                                permanent: true,    
+                                direction: 'center', 
                                 className: 'country-label'
                             });
                         }
@@ -196,6 +196,38 @@
         }
         
         loadCountryBorders();
+
+        // METHOD B ENGINE: AUTOMATED PURCHASING POWER LOCALE DETECTION
+        const parityPricingIndex = {
+            "IN": { symbol: "₹", amount: "199", currency: "INR" },   // Localized economic value match for India
+            "BR": { symbol: "R$", amount: "25", currency: "BRL" },   // Localized match for Brazil
+            "EG": { symbol: "E£", amount: "150", currency: "EGP" },  // Localized match for Egypt
+            "GB": { symbol: "£", amount: "4.50", currency: "GBP" },
+            "EU": { symbol: "€", amount: "4.99", currency: "EUR" },
+            "US": { symbol: "$", amount: "5.00", currency: "USD" }
+        };
+
+        async function openPaywall() {
+            document.getElementById('paywall-modal').classList.remove('hidden');
+            
+            try {
+                // Fetch user country code parameters silently via their network IP routing footprint
+                const res = await fetch('https://ipapi.co/json/');
+                const geoData = await res.json();
+                const countryCode = geoData.country_code; // Returns clean standard formats like "IN", "US", "BR"
+
+                // Extract custom multi-currency price variables from parity app matrix tables
+                const localizedTier = parityPricingIndex[countryCode] || parityPricingIndex["US"];
+
+                // Overwrite the hardcoded template interface code text instantly
+                document.getElementById('paywall-price-box').innerHTML = 
+                    `${localizedTier.symbol}${localizedTier.amount} <span class="text-xs text-gray-500 font-normal">/ month (${localizedTier.currency})</span>`;
+            } catch (error) {
+                console.log("Geo IP server delayed. Defaulting payload to global USD pricing.", error);
+            }
+        }
+
+        function closePaywall() { document.getElementById('paywall-modal').classList.add('hidden'); }
 
         document.getElementById('search-input').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') searchCity();
@@ -277,8 +309,6 @@
         }
 
         function closeSidebar() { document.getElementById('sidebar').classList.add('translate-x-full'); }
-        function openPaywall() { document.getElementById('paywall-modal').classList.remove('hidden'); }
-        function closePaywall() { document.getElementById('paywall-modal').classList.add('hidden'); }
 
         function simulateStripeCheckout() {
             closePaywall();
@@ -289,7 +319,7 @@
             document.getElementById('account-status-badge').innerText = proText;
             document.getElementById('account-status-badge').className = "text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full font-semibold";
             document.getElementById('account-status-badge-mobile').innerText = "👑 PRO";
-            document.getElementById('account-status-badge-mobile').className = "text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full font-semibold";
+            document.getElementById('account-status-badge-mobile').className = "text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold";
             document.getElementById('upgrade-header-btn').classList.add('hidden');
             
             alert("🎉 Upgrade Success! Local history databases and synthesis tools are completely active.");
