@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global History Atlas - Complete Pro Edition</title>
+    <title>Global History Atlas - Cinematic Voice Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://js.stripe.com/v3/"></script>
@@ -17,16 +17,19 @@
         .leaflet-popup-tip { background-color: #1a1a1e !important; }
         .transition-all { transition: all 0.3s ease-in-out; }
         
-        .country-label {
-            background: transparent !important;
-            border: none !important;
-            color: rgba(255, 255, 255, 0.55) !important;
-            font-weight: 600 !important;
-            font-family: sans-serif !important;
-            font-size: 10px !important;
-            text-shadow: 0px 0px 4px rgba(0, 0, 0, 0.9), 1px 1px 2px rgba(0,0,0,1) !important;
-            box-shadow: none !important;
-            white-space: nowrap;
+        /* NEW: Ancient Woven Carpet Background Pattern */
+        .carpet-tapestry-bg {
+            background-color: #0d0d11;
+            background-image: 
+                linear-gradient(30deg, #1c1917 12%, transparent 12.5%, transparent 87%, #1c1917 87.5%, #1c1917),
+                linear-gradient(150deg, #1c1917 12%, transparent 12.5%, transparent 87%, #1c1917 87.5%, #1c1917),
+                linear-gradient(30deg, #1c1917 12%, transparent 12.5%, transparent 87%, #1c1917 87.5%, #1c1917),
+                linear-gradient(150deg, #1c1917 12%, transparent 12.5%, transparent 87%, #1c1917 87.5%, #1c1917),
+                linear-gradient(60deg, #292524 25%, transparent 25.5%, transparent 75%, #292524 75.5%, #292524),
+                linear-gradient(60deg, #292524 25%, transparent 25.5%, transparent 75%, #292524 75.5%, #292524);
+            background-size: 40px 70px;
+            background-position: 0 0, 0 0, 20px 35px, 20px 35px, 0 0, 20px 35px;
+            border: 12px solid #292524; /* Ornate woven border frame */
         }
 
         .custom-scroll::-webkit-scrollbar { width: 6px; }
@@ -34,108 +37,115 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #2e2e3e; border-radius: 3px; }
     </style>
 </head>
-<body class="bg-[#0f0f11] text-gray-100 font-sans overflow-hidden h-screen w-screen flex flex-col">
+<body class="carpet-tapestry-bg text-gray-100 font-sans overflow-hidden h-screen w-screen flex flex-col p-1 sm:p-2">
 
-    <header class="bg-[#16161a] border-b border-gray-800 p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between z-10 shadow-md">
-        <div class="flex items-center justify-between w-full sm:w-auto">
-            <h1 class="text-lg sm:text-xl font-bold tracking-wider text-amber-400">📜 CHRONOMAP <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded ml-1 font-mono">PRO</span></h1>
+    <div class="flex-1 flex flex-col bg-[#0f0f11]/95 rounded-xl overflow-hidden border border-gray-800 shadow-2xl relative">
+
+        <header class="bg-[#16161a] border-b border-gray-800 p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between z-10 shadow-md">
+            <div class="flex items-center justify-between w-full sm:w-auto">
+                <h1 class="text-lg sm:text-xl font-bold tracking-wider text-amber-400">📜 CHRONOMAP <span class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded ml-1 font-mono">PRO</span></h1>
+                
+                <div class="flex items-center gap-3 sm:hidden">
+                    <button onclick="toggleKeyVaultModal()" class="text-gray-400 text-lg">⚙️</button>
+                    <span id="account-status-badge-mobile" class="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full font-semibold">🔴 Free</span>
+                </div>
+            </div>
+
+            <div class="flex flex-1 max-w-md mx-auto sm:mx-4 w-full shadow-inner">
+                <input type="text" id="search-input" placeholder="Search any town or city on Earth..." class="w-full bg-gray-900 border border-gray-700 rounded-l-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors">
+                <button onclick="searchCity()" class="bg-amber-500 hover:bg-amber-600 text-black font-bold px-4 rounded-r-lg text-sm transition-colors cursor-pointer flex items-center justify-center">🔍</button>
+            </div>
             
-            <div class="flex items-center gap-3 sm:hidden">
-                <button onclick="toggleKeyVaultModal()" class="text-gray-400 text-lg">⚙️</button>
-                <span id="account-status-badge-mobile" class="text-[10px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-full font-semibold">🔴 Free</span>
-            </div>
-        </div>
-
-        <div class="flex flex-1 max-w-md mx-auto sm:mx-4 w-full shadow-inner">
-            <input type="text" id="search-input" placeholder="Search any town or city on Earth..." class="w-full bg-gray-900 border border-gray-700 rounded-l-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-amber-500 transition-colors">
-            <button onclick="searchCity()" class="bg-amber-500 hover:bg-amber-600 text-black font-bold px-4 rounded-r-lg text-sm transition-colors cursor-pointer flex items-center justify-center">🔍</button>
-        </div>
-        
-        <div class="hidden sm:flex items-center gap-3">
-            <button onclick="toggleKeyVaultModal()" class="text-gray-400 hover:text-white transition-colors cursor-pointer text-sm font-mono border border-gray-700 px-2 py-1 rounded bg-gray-900">⚙️ Keys</button>
-            <span id="account-status-badge" class="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2.5 py-1 rounded-full font-semibold">
-                🔴 Free Account
-            </span>
-            <button onclick="openPaywall()" id="upgrade-header-btn" class="bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-black text-xs font-bold px-4 py-1.5 rounded-lg shadow cursor-pointer transition-all">
-                ⚡ Upgrade to Pro
-            </button>
-        </div>
-    </header>
-
-    <div class="flex flex-1 relative overflow-hidden">
-        
-        <div id="map" class="w-full h-full z-0"></div>
-
-        <div id="sidebar" class="absolute right-0 top-0 h-full w-full sm:w-96 bg-[#16161a] border-l border-gray-800 z-10 translate-x-full transition-all p-6 shadow-2xl flex flex-col justify-between">
-            <div class="flex flex-col flex-1 overflow-y-auto custom-scroll pr-1">
-                <div class="flex justify-between items-center mb-4">
-                    <span id="side-era" class="text-xs font-mono text-amber-500 uppercase tracking-widest font-bold">Era</span>
-                    <button onclick="closeSidebar()" class="text-gray-400 hover:text-white text-lg font-bold cursor-pointer px-2">✕</button>
-                </div>
-                <h2 id="side-title" class="text-2xl font-serif text-white mb-2">Event Title</h2>
-                <p id="side-description" class="text-gray-400 text-sm leading-relaxed whitespace-pre-line">Details...</p>
-            </div>
-            <div class="pt-4 border-t border-gray-800 text-xs text-gray-500 font-mono mt-2" id="side-coords">
-                Coordinates: 0.000, 0.000
-            </div>
-        </div>
-
-        <div id="video-modal" class="absolute inset-0 bg-black/90 z-40 hidden flex items-center justify-center p-4 backdrop-blur-sm">
-            <div class="bg-[#16161a] border border-gray-800 rounded-xl max-w-3xl w-full p-4 relative shadow-2xl">
-                <button onclick="closeVideoModal()" class="absolute -top-10 right-0 text-white hover:text-amber-400 font-mono text-xs bg-gray-950 px-3 py-1.5 border border-gray-800 rounded-lg cursor-pointer">✕ CLOSE PLAYER</button>
-                <div class="aspect-video w-full bg-black rounded-lg flex items-center justify-center overflow-hidden border border-gray-800 shadow-inner">
-                    <video id="modal-video-player" class="w-full h-full rounded" controls src=""></video>
-                </div>
-                <h3 id="video-modal-title" class="text-base font-bold text-amber-400 mt-3 font-serif">Historical Media Playback</h3>
-            </div>
-        </div>
-
-        <div id="paywall-modal" class="absolute inset-0 bg-black/80 z-30 hidden flex items-center justify-center p-4 backdrop-blur-sm">
-            <div class="bg-[#16161a] border-2 border-amber-500/40 rounded-2xl max-w-md w-full p-6 relative shadow-2xl text-center">
-                <button onclick="closePaywall()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold cursor-pointer px-2">✕</button>
-                
-                <div class="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">👑</div>
-                <h3 class="text-2xl font-bold text-white font-serif">Unlock ChronoMap Pro</h3>
-                <p class="text-gray-400 text-sm mt-2 mb-6">Get unlimited access to every city on earth, historic document downloads, and high-definition dynamic video breakdowns.</p>
-                
-                <div class="text-left bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6 space-y-2 text-sm text-gray-300">
-                    <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Infinite Towns:</span> Explore micro-history worldwide</div>
-                    <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Localized Pricing:</span> Fair regional rates active</div>
-                    <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">PDF Printing:</span> One-click research exports</div>
-                </div>
-
-                <div id="paywall-price-box" class="text-3xl font-bold text-white mb-6">
-                    $5.00 <span class="text-xs text-gray-500 font-normal">/ month (USD)</span>
-                </div>
-                
-                <button onclick="simulateStripeCheckout()" class="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-700 text-black font-bold py-3 px-4 rounded-xl shadow-lg transition-all cursor-pointer">
-                    Start Your 7-Day Free Trial
+            <div class="hidden sm:flex items-center gap-3">
+                <button onclick="toggleKeyVaultModal()" class="text-gray-400 hover:text-white transition-colors cursor-pointer text-sm font-mono border border-gray-700 px-2 py-1 rounded bg-gray-900">⚙️ Keys</button>
+                <span id="account-status-badge" class="text-xs bg-red-500/20 text-red-400 border border-red-500/30 px-2.5 py-1 rounded-full font-semibold">
+                    🔴 Free Account
+                </span>
+                <button onclick="openPaywall()" id="upgrade-header-btn" class="bg-gradient-to-r from-amber-400 to-amber-600 hover:from-amber-500 hover:to-amber-700 text-black text-xs font-bold px-4 py-1.5 rounded-lg shadow cursor-pointer transition-all">
+                    ⚡ Upgrade to Pro
                 </button>
-                <p class="text-[10px] text-gray-500 mt-3">Cancel anytime instantly with 1-click. Secured via Stripe.</p>
             </div>
-        </div>
+        </header>
 
-        <div id="key-vault-modal" class="absolute inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
-            <div class="bg-[#1a1a22] border border-gray-800 rounded-2xl max-w-sm w-full p-6 relative text-center">
-                <button onclick="toggleKeyVaultModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white font-bold cursor-pointer">✕</button>
-                <div class="text-2xl mb-2">🔑</div>
-                <h4 class="text-lg font-bold text-white font-serif">Secure Credentials Vault</h4>
-                <p class="text-xs text-gray-400 mt-1 mb-4">Paste your developer key from Google AI Studio. It saves safely inside your own device memory storage.</p>
-                <input type="password" id="gemini-key-input" placeholder="AIZAsy..." class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm font-mono text-amber-400 focus:outline-none focus:border-amber-500 mb-4">
-                <button onclick="saveDeveloperKeys()" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-2 rounded-lg text-sm transition-colors cursor-pointer">Save Key Configuration</button>
+        <div class="flex flex-1 relative overflow-hidden">
+            
+            <div id="map" class="w-full h-full z-0"></div>
+
+            <div id="sidebar" class="absolute right-0 top-0 h-full w-full sm:w-96 bg-[#16161a] border-l border-gray-800 z-10 translate-x-full transition-all p-6 shadow-2xl flex flex-col justify-between">
+                <div class="flex flex-col flex-1 overflow-y-auto custom-scroll pr-1">
+                    <div class="flex justify-between items-center mb-4">
+                        <span id="side-era" class="text-xs font-mono text-amber-500 uppercase tracking-widest font-bold">Era</span>
+                        <button onclick="closeSidebar()" class="text-gray-400 hover:text-white text-lg font-bold cursor-pointer px-2">✕</button>
+                    </div>
+                    <h2 id="side-title" class="text-2xl font-serif text-white mb-2">Event Title</h2>
+                    <p id="side-description" class="text-gray-400 text-sm leading-relaxed whitespace-pre-line">Details...</p>
+                </div>
+                <div class="pt-4 border-t border-gray-800 text-xs text-gray-500 font-mono mt-2" id="side-coords">
+                    Coordinates: 0.000, 0.000
+                </div>
             </div>
-        </div>
 
+            <div id="video-modal" class="absolute inset-0 bg-black/90 z-40 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-[#16161a] border border-gray-800 rounded-xl max-w-3xl w-full p-4 relative shadow-2xl">
+                    <button onclick="closeVideoModal()" class="absolute -top-10 right-0 text-white hover:text-amber-400 font-mono text-xs bg-gray-950 px-3 py-1.5 border border-gray-800 rounded-lg cursor-pointer">✕ CLOSE PLAYER</button>
+                    
+                    <div class="aspect-video w-full bg-black rounded-lg flex items-center justify-center overflow-hidden border border-gray-800 shadow-inner relative">
+                        <video id="modal-video-player" class="w-full h-full rounded" src=""></video>
+                        
+                        <div class="absolute bottom-4 left-4 right-4 bg-black/70 backdrop-blur-sm border border-gray-800 p-2 rounded-lg text-center text-xs text-amber-400 font-mono tracking-wide" id="voice-subtitles-box">
+                            Preparing narrator documentation voice tracks...
+                        </div>
+                    </div>
+                    <h3 id="video-modal-title" class="text-base font-bold text-amber-400 mt-3 font-serif">Historical Media Playback</h3>
+                </div>
+            </div>
+
+            <div id="paywall-modal" class="absolute inset-0 bg-black/80 z-30 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-[#16161a] border-2 border-amber-500/40 rounded-2xl max-w-md w-full p-6 relative shadow-2xl text-center">
+                    <button onclick="closePaywall()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold cursor-pointer px-2">✕</button>
+                    
+                    <div class="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">👑</div>
+                    <h3 class="text-2xl font-bold text-white font-serif">Unlock ChronoMap Pro</h3>
+                    <p class="text-gray-400 text-sm mt-2 mb-6">Get unlimited access to every city on earth, historic document downloads, and high-definition dynamic video breakdowns.</p>
+                    
+                    <div class="text-left bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6 space-y-2 text-sm text-gray-300">
+                        <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Infinite Towns:</span> Explore micro-history worldwide</div>
+                        <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Localized Pricing:</span> Fair regional rates active</div>
+                        <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Dynamic Voice:</span> AI voice narrator active over media</div>
+                    </div>
+
+                    <div id="paywall-price-box" class="text-3xl font-bold text-white mb-6">
+                        $5.00 <span class="text-xs text-gray-500 font-normal">/ month (USD)</span>
+                    </div>
+                    
+                    <button onclick="simulateStripeCheckout()" class="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-700 text-black font-bold py-3 px-4 rounded-xl shadow-lg transition-all cursor-pointer">
+                        Start Your 7-Day Free Trial
+                    </button>
+                    <p class="text-[10px] text-gray-500 mt-3">Cancel anytime instantly with 1-click. Secured via Stripe.</p>
+                </div>
+            </div>
+
+            <div id="key-vault-modal" class="absolute inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+                <div class="bg-[#1a1a22] border border-gray-800 rounded-2xl max-w-sm w-full p-6 relative text-center">
+                    <button onclick="toggleKeyVaultModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white font-bold cursor-pointer">✕</button>
+                    <div class="text-2xl mb-2">🔑</div>
+                    <h4 class="text-lg font-bold text-white font-serif">Secure Credentials Vault</h4>
+                    <p class="text-xs text-gray-400 mt-1 mb-4">Paste your developer key from Google AI Studio. It saves safely inside your own device memory storage.</p>
+                    <input type="password" id="gemini-key-input" placeholder="AIZAsy..." class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm font-mono text-amber-400 focus:outline-none focus:border-amber-500 mb-4">
+                    <button onclick="saveDeveloperKeys()" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-2 rounded-lg text-sm transition-colors cursor-pointer">Save Key Configuration</button>
+                </div>
+            </div>
+
+        </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let userHasProAccess = false; 
         let searchMarker = null;
-        let countriesLayer = null;
         let map = null;
+        let activeSpeechUtterance = null; // Master speech synthesis controller anchor
 
-        // Static Master Database
         const defaultHistoricalPins = [
             { name: "Rome", coords: [41.9028, 12.4964], type: "capital" },
             { name: "Pataliputra (Patna)", coords: [25.6112, 85.1414], type: "capital" },
@@ -143,37 +153,25 @@
             { name: "Xi'an", coords: [34.3416, 108.9398], type: "capital" },
             { name: "Athens", coords: [37.9838, 23.7275], type: "capital" },
             { name: "Alexandria", coords: [31.2001, 29.9187], type: "capital" },
-            { name: "Kyoto", coords: [35.0116, 135.7681], type: "capital" },
-            { name: "Carthage", coords: [36.8529, 10.3307], type: "capital" },
-            { name: "Babylon", coords: [32.5355, 44.4246], type: "capital" },
-            { name: "Cuzco", coords: [-13.5320, -71.9675], type: "capital" },
             { name: "Battle of Cannae", coords: [41.2962, 16.1492], type: "battle" },
             { name: "Battle of Panipat", coords: [29.3909, 76.9635], type: "battle" },
-            { name: "Battle of Waterloo", coords: [50.6865, 4.4111], type: "battle" },
             { name: "Giza Pyramids", coords: [29.9792, 31.1342], type: "wonder" },
-            { name: "Taj Mahal", coords: [27.1751, 78.0421], type: "wonder" },
-            { name: "Machu Picchu", coords: [-13.1631, -72.5450], type: "wonder" },
-            { name: "Great Wall Pass (Mutianyu)", coords: [40.4319, 116.5704], type: "wonder" }
+            { name: "Taj Mahal", coords: [27.1751, 78.0421], type: "wonder" }
         ];
 
-        // FIXED STRUCTURAL INITIALIZATION: Fires sequentially when container DOM parses
         document.addEventListener("DOMContentLoaded", function() {
             map = L.map('map', {
-                center: [25.0, 35.0], 
-                zoom: 3,
+                center: [22.0, 78.0], 
+                zoom: 4,
                 minZoom: 2,
-                maxZoom: 15,
+                maxZoom: 16,
                 zoomControl: false
             });
 
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}{r}.png', {
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap & &copy; CARTO'
             }).addTo(map);
 
-            L.control.zoom({ position: 'bottomleft' }).addTo(map);
-
-            // Execute layered layout asset requests cleanly
-            loadCountryBorders();
             loadDefaultHistoricalNodes();
         });
 
@@ -201,7 +199,7 @@
                             <button onclick="handleSearchNodeAction('view', '${pin.name}', ${pin.coords[0]}, ${pin.coords[1]})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between">
                                 <span>📜 Synthesize AI Timeline</span> <span>→</span>
                             </button>
-                            <button onclick="playHistoricalVideo('${pin.name}')" class="w-full text-left bg-purple-950 hover:bg-purple-800 text-white text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between border border-purple-500/30">
+                            <button onclick="playCinematicWithVoice('${pin.name}', ${pin.coords[0]}, ${pin.coords[1]})" class="w-full text-left bg-purple-950 hover:bg-purple-800 text-white text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between border border-purple-500/30">
                                 <span>🎥 Play Cinematic Video</span> <span>▶</span>
                             </button>
                         </div>
@@ -211,200 +209,8 @@
             });
         }
 
-        function getRegionColor(countryName) {
-            if (!countryName) return '#4b5563';
-            const name = countryName.toLowerCase();
-
-            if (["india", "china", "japan", "russia", "pakistan", "bangladesh", "indonesia", "thailand", "vietnam", "philippines", "malaysia", "korea", "mongolia", "nepal", "sri lanka", "myanmar", "cambodia", "laos", "kazakhstan", "uzbekistan", "turkmenistan", "kyrgyzstan", "tajikistan"].some(c => name.includes(c))) {
-                return '#d97706'; 
-            }
-            if (["egypt", "saudi", "iran", "iraq", "turkey", "syria", "jordan", "israel", "lebanon", "oman", "yemen", "emirates", "uae", "qatar", "kuwait", "morocco", "algeria", "tunisia", "libya", "sudan"].some(c => name.includes(c))) {
-                return '#c2410c'; 
-            }
-            if (["united kingdom", "france", "germany", "italy", "spain", "portugal", "poland", "ukraine", "romania", "greece", "sweden", "norway", "finland", "ireland", "belgium", "netherlands", "switzerland", "austria", "czech", "slovakia", "hungary", "bulgaria", "croatia", "serbia", "denmark"].some(c => name.includes(c))) {
-                return '#2563eb'; 
-            }
-            if (["nigeria", "ethiopia", "kenya", "south africa", "ghana", "tanzania", "uganda", "congo", "angola", "mozambique", "madagascar", "cameroon", "niger", "mali", "senegal", "zimbabwe", "zambia", "somalia", "namibia", "botswana"].some(c => name.includes(c))) {
-                return '#059669'; 
-            }
-            if (["united states", "america", "canada", "mexico", "cuba", "guatemala", "honduras", "panama", "costa"].some(c => name.includes(c))) {
-                return '#dc2626'; 
-            }
-            if (["brazil", "argentina", "colombia", "peru", "venezuela", "chile", "ecuador", "bolivia", "paraguay", "uruguay"].some(c => name.includes(c))) {
-                return '#7c3aed'; 
-            }
-            if (["australia", "new zealand", "papua", "fiji", "solomon", "samoa"].some(c => name.includes(c))) {
-                return '#0891b2'; 
-            }
-
-            return '#4b5563';
-        }
-
-        async function loadCountryBorders() {
-            try {
-                const res = await fetch('https://raw.githubusercontent.com/datasets/geo-boundaries-world-110m/master/countries.geojson');
-                const geoData = await res.json();
-
-                countriesLayer = L.geoJson(geoData, {
-                    style: function(feature) {
-                        const countryName = feature.properties.name || feature.properties.name_long;
-                        return {
-                            fillColor: getRegionColor(countryName),
-                            weight: 1.5,          
-                            opacity: 0.7,         
-                            color: '#444455',     
-                            fillOpacity: 0.42     
-                        };
-                    },
-                    onEachFeature: function(feature, layer) {
-                        const countryName = feature.properties.name || feature.properties.name_long || "";
-                        if (countryName) {
-                            layer.bindTooltip(countryName, {
-                                permanent: true,    
-                                direction: 'center', 
-                                className: 'country-label'
-                            });
-                        }
-
-                        layer.on({
-                            mouseover: function(e) {
-                                e.target.setStyle({ fillOpacity: 0.65, weight: 2.5, color: '#fbbf24' });
-                            },
-                            mouseout: function(e) {
-                                countriesLayer.resetStyle(e.target);
-                            },
-                            click: function(e) {
-                                map.fitBounds(e.target.getBounds());
-                            }
-                        });
-                    }
-                }).addTo(map);
-            } catch (err) {
-                console.error("Error loading boundary layer assets:", err);
-            }
-        }
-
-        const parityPricingIndex = {
-            "IN": { symbol: "₹", amount: "199", currency: "INR" },   
-            "BR": { symbol: "R$", amount: "25", currency: "BRL" },   
-            "EG": { symbol: "E£", amount: "150", currency: "EGP" },  
-            "GB": { symbol: "£", amount: "4.50", currency: "GBP" },
-            "EU": { symbol: "€", amount: "4.99", currency: "EUR" },
-            "US": { symbol: "$", amount: "5.00", currency: "USD" }
-        };
-
-        async function openPaywall() {
-            document.getElementById('paywall-modal').classList.remove('hidden');
-            try {
-                const res = await fetch('https://ipapi.co/json/');
-                const geoData = await res.json();
-                const countryCode = geoData.country_code;
-                const localizedTier = parityPricingIndex[countryCode] || parityPricingIndex["US"];
-                document.getElementById('paywall-price-box').innerHTML = 
-                    `${localizedTier.symbol}${localizedTier.amount} <span class="text-xs text-gray-500 font-normal">/ month (${localizedTier.currency})</span>`;
-            } catch (error) {
-                console.log("Geo IP server delayed.", error);
-            }
-        }
-
-        function closePaywall() { document.getElementById('paywall-modal').classList.add('hidden'); }
-        
-        function toggleKeyVaultModal() {
-            document.getElementById('key-vault-modal').classList.toggle('hidden');
-            const savedKey = localStorage.getItem('gemini_api_key');
-            if (savedKey) {
-                document.getElementById('gemini-key-input').value = savedKey;
-            }
-        }
-
-        function saveDeveloperKeys() {
-            const keyVal = document.getElementById('gemini-key-input').value.trim();
-            if(!keyVal) {
-                alert("Please input a valid Google API Key string.");
-                return;
-            }
-            localStorage.setItem('gemini_api_key', keyVal);
-            alert("Key encryption strings successfully bound into system browser storage cache.");
-            toggleKeyVaultModal();
-        }
-
-        async function searchCity() {
-            const query = document.getElementById('search-input').value.trim();
-            if (!query) return;
-
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
-                const data = await response.json();
-
-                if (data && data.length > 0) {
-                    const lat = parseFloat(data[0].lat);
-                    const lon = parseFloat(data[0].lon);
-                    const displayName = data[0].display_name.split(',')[0];
-
-                    if (searchMarker) map.removeLayer(searchMarker);
-
-                    map.flyTo([lat, lon], 12, { animate: true, duration: 2.0 });
-
-                    searchMarker = L.circleMarker([lat, lon], {
-                        radius: 10,
-                        fillColor: '#a855f7',
-                        color: '#7e22ce',
-                        weight: 3,
-                        fillOpacity: 0.9
-                    }).addTo(map);
-
-                    const popupContent = `
-                        <div class="p-2 min-w-[220px]">
-                            <div class="flex justify-between items-center">
-                                <span class="text-[10px] text-purple-400 uppercase tracking-widest font-mono font-bold">Local Micro-History</span>
-                                <span class="text-[9px] bg-purple-500/20 text-purple-400 border border-purple-500/30 px-1.5 py-0.2 rounded font-bold">PRO</span>
-                            </div>
-                            <h3 class="text-sm font-bold text-white mb-1 mt-1">${displayName}</h3>
-                            <p class="text-[11px] text-gray-400 mb-2">Coordinates: ${lat.toFixed(3)}, ${lon.toFixed(3)}</p>
-                            
-                            <div class="flex flex-col gap-1.5 mt-2">
-                                <button onclick="handleSearchNodeAction('view', '${displayName}', ${lat}, ${lon})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between">
-                                    <span>📜 Synthesize AI Timeline</span> <span>→</span>
-                                </button>
-                                <button onclick="playHistoricalVideo('${displayName}')" class="w-full text-left bg-purple-950 hover:bg-purple-800 text-white text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between border border-purple-500/30">
-                                    <span>🎥 Play Cinematic Video</span> <span>▶</span>
-                                </button>
-                            </div>
-                        </div>
-                    `;
-
-                    searchMarker.bindPopup(popupContent, { closeButton: false, offset: [0, -5] });
-                    setTimeout(() => { searchMarker.openPopup(); }, 2200);
-
-                } else {
-                    alert("⚠️ Location data not found on global index layers.");
-                }
-            } catch (error) {
-                alert("Network timeout parsing geocoding API variables.");
-            }
-        }
-
-        function playHistoricalVideo(cityName) {
-            if (!userHasProAccess) {
-                openPaywall();
-                return;
-            }
-            const videoUrl = "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4";
-            document.getElementById('video-modal-title').innerText = `${cityName} - Archive Cinematic Reel`;
-            const player = document.getElementById('modal-video-player');
-            player.src = videoUrl;
-            document.getElementById('video-modal').classList.remove('hidden');
-            player.play();
-        }
-
-        function closeVideoModal() {
-            const player = document.getElementById('modal-video-player');
-            player.pause();
-            player.src = ""; 
-            document.getElementById('video-modal').classList.add('hidden');
-        }
-
-        async function handleSearchNodeAction(actionType, cityName, lat, lon) {
+        // NEW MULTIMEDIA ENGINE: CONNECTS GEMINI TEXT PARAMETERS TO COMPRESSED VIDEO TRACKS
+        async function playCinematicWithVoice(cityName, lat, lon) {
             if (!userHasProAccess) {
                 openPaywall();
                 return;
@@ -412,69 +218,117 @@
 
             const developerApiKey = localStorage.getItem('gemini_api_key');
             if(!developerApiKey) {
-                alert("⚠️ App Brain Offline: Please click the ⚙️ icon at the top right header panel and link your free Gemini developer API key to run this live search request!");
+                alert("⚠️ Voice Engine Offline: Connect your free Gemini developer API key using the ⚙️ Keys dashboard tool first to authorize synchronized video narratives!");
                 return;
             }
 
-            document.getElementById('side-era').innerText = "AI Generation Engine Active...";
-            document.getElementById('side-title').innerText = `${cityName} Chronicles`;
-            document.getElementById('side-description').innerText = `Connecting to Google AI Studio clusters...\nSynthesizing ancient archaeological data fields for coordinates: [${lat.toFixed(4)}, ${lon.toFixed(4)}]`;
-            document.getElementById('side-coords').innerText = `Query Target: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
-            document.getElementById('sidebar').classList.remove('translate-x-full');
+            // Fire and show video container immediately in loading state
+            document.getElementById('video-modal-title').innerText = `${cityName} - Archive Cinematic Reel`;
+            document.getElementById('voice-subtitles-box').innerText = "Connecting to history chronicles API parameters... Generating narrator voice data layer...";
+            document.getElementById('video-modal').classList.remove('hidden');
+
+            const player = document.getElementById('modal-video-player');
+            // Connect to our trusted sample streaming video background loop asset
+            player.src = "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4";
+            player.loop = true;
+            player.muted = true; // Mutes background source noise so narrator reads clearly
+            player.play();
 
             try {
-                const targetPrompt = `Provide a deeply compelling chronological timeline micro-history breakdown for the location: ${cityName} situated at geographic coordinates latitude ${lat}, longitude ${lon}. Split the analysis into 3 distinct historic eras (e.g. Ancient Roots, Medieval Transitions, Modern Evolution). For each era, summarize major battles, structural transformations, empire shifting, and local myths. Format cleanly using spacing and simple paragraphs. Be historical, epic, and highly informative.`;
+                // Fetch a high-impact short narrative summary targeted directly at video synchronization constraints
+                const videoPrompt = `Write a short, powerful, dramatic script narration explaining the micro-history, legendary combat strategies, or architectural wonders of ${cityName} (Coordinates: [${lat}, ${lon}]). Keep it strictly between 3 to 4 short, highly descriptive sentences. Focus on epic action words suitable for a documentary trailer voiceover.`;
                 const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${developerApiKey}`;
                 
-                const fetchParams = {
+                const response = await fetch(endpointUrl, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: targetPrompt }] }]
-                    })
-                };
+                    body: JSON.stringify({ contents: [{ parts: [{ text: videoPrompt }] }] })
+                });
+                const resJson = await response.json();
 
-                const response = await fetch(endpointUrl, fetchParams);
-                const resultsJson = await response.json();
+                if (resJson.candidates && resJson.candidates[0].content.parts[0].text) {
+                    const narratorScriptText = resJson.candidates[0].content.parts[0].text.replace(/[*#]/g, "");
+                    document.getElementById('voice-subtitles-box').innerText = narratorScriptText;
 
-                if(resultsJson.candidates && resultsJson.candidates[0].content.parts[0].text) {
-                    const realAITextOutput = resultsJson.candidates[0].content.parts[0].text;
-                    document.getElementById('side-era').innerText = "Chronicle Complete";
-                    document.getElementById('side-description').innerText = realAITextOutput;
+                    // DYNAMIC VOICE SYNCHRONIZER: Injects string payload into browser's speaker routing layers
+                    window.speechSynthesis.cancel(); // Stop any overlapping speech structures
+                    activeSpeechUtterance = new SpeechSynthesisUtterance(narratorScriptText);
+                    
+                    // Force device to prioritize a deep, clear English narration frequency channel
+                    activeSpeechUtterance.lang = 'en-US';
+                    activeSpeechUtterance.rate = 0.90; // Slid down slightly for a dramatic, epic pacing layout
+                    activeSpeechUtterance.pitch = 0.85; // Lower pitch tone for professional voice trailer feel
+                    
+                    window.speechSynthesis.speak(activeSpeechUtterance);
                 } else {
-                    document.getElementById('side-description').innerText = "⚠️ Google endpoint rejected content framing syntax loops. Verify API Key validation strings.";
+                    document.getElementById('voice-subtitles-box').innerText = "Sync generation error. Checking API data feeds...";
                 }
-
             } catch (err) {
-                console.error("AI Node Breakdown Error:", err);
-                document.getElementById('side-description').innerText = "⚠️ Connection timeout tracking text streaming servers.";
+                console.log("Video narration sync pipeline crash:", err);
+                document.getElementById('voice-subtitles-box').innerText = "Network timeout syncing dynamic narration data tracks.";
             }
         }
 
-        function openSidebar(node) {
-            document.getElementById('side-era').innerText = node.era;
-            document.getElementById('side-title').innerText = node.title;
-            document.getElementById('side-description').innerText = node.summary;
-            document.getElementById('side-coords').innerText = `Coordinates: ${node.coords[0].toFixed(4)}, ${node.coords[1].toFixed(4)}`;
-            document.getElementById('sidebar').classList.remove('translate-x-full');
+        function closeVideoModal() {
+            const player = document.getElementById('modal-video-player');
+            player.pause();
+            player.src = "";
+            window.speechSynthesis.cancel(); // Terminate narrator audio tracking loops instantly
+            document.getElementById('video-modal').classList.add('hidden');
         }
 
+        const parityPricingIndex = { "IN": { symbol: "₹", amount: "199", currency: "INR" }, "US": { symbol: "$", amount: "5.00", currency: "USD" } };
+        async function openPaywall() {
+            document.getElementById('paywall-modal').classList.remove('hidden');
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const geoData = await res.json();
+                const localizedTier = parityPricingIndex[geoData.country_code] || parityPricingIndex["US"];
+                document.getElementById('paywall-price-box').innerHTML = `${localizedTier.symbol}${localizedTier.amount} <span class="text-xs text-gray-500 font-normal">/ month (${localizedTier.currency})</span>`;
+            } catch (error) { console.log(error); }
+        }
+        function closePaywall() { document.getElementById('paywall-modal').classList.add('hidden'); }
+        function toggleKeyVaultModal() { document.getElementById('key-vault-modal').classList.toggle('hidden'); const savedKey = localStorage.getItem('gemini_api_key'); if (savedKey) document.getElementById('gemini-key-input').value = savedKey; }
+        function saveDeveloperKeys() { const keyVal = document.getElementById('gemini-key-input').value.trim(); if(!keyVal) return; localStorage.setItem('gemini_api_key', keyVal); alert("Bound to system browse parameters."); toggleKeyVaultModal(); }
+
+        document.getElementById('search-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') searchCity(); });
+        async function searchCity() {
+            const query = document.getElementById('search-input').value.trim(); if (!query) return;
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=1`);
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    const lat = parseFloat(data[0].lat); const lon = parseFloat(data[0].lon); const displayName = data[0].display_name.split(',')[0];
+                    if (searchMarker) map.removeLayer(searchMarker);
+                    map.flyTo([lat, lon], 12, { animate: true, duration: 2.0 });
+                    searchMarker = L.circleMarker([lat, lon], { radius: 10, fillColor: '#a855f7', color: '#7e22ce', weight: 3, fillOpacity: 0.9 }).addTo(map);
+                    const popupContent = `
+                        <div class="p-2 min-w-[220px]">
+                            <h3 class="text-sm font-bold text-white mb-1">${displayName}</h3>
+                            <div class="flex flex-col gap-1.5 mt-2">
+                                <button onclick="handleSearchNodeAction('view', '${displayName}', ${lat}, ${lon})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between"><span>📜 Synthesize AI Timeline</span> <span>→</span></button>
+                                <button onclick="playCinematicWithVoice('${displayName}', ${lat}, ${lon})" class="w-full text-left bg-purple-950 hover:bg-purple-800 text-white text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between border border-purple-500/30"><span>🎥 Play Cinematic Video</span> <span>▶</span></button>
+                            </div>
+                        </div>`;
+                    searchMarker.bindPopup(popupContent, { closeButton: false, offset: [0, -5] });
+                    setTimeout(() => { searchMarker.openPopup(); }, 2200);
+                }
+            } catch (error) { alert("Timeout error mapping parameters."); }
+        }
+
+        async function handleSearchNodeAction(actionType, cityName, lat, lon) {
+            if (!userHasProAccess) { openPaywall(); return; }
+            const developerApiKey = localStorage.getItem('gemini_api_key'); if(!developerApiKey) { alert("⚙️ Missing Key"); return; }
+            document.getElementById('side-era').innerText = "AI Active..."; document.getElementById('side-title').innerText = `${cityName} Chronicles`; document.getElementById('sidebar').classList.remove('translate-x-full');
+            try {
+                const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${developerApiKey}`;
+                const response = await fetch(endpointUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: `Provide a deeply compelling chronological timeline micro-history breakdown for the location: ${cityName} [${lat}, ${lon}]. Split into 3 distinct historic eras. Format cleanly.` }] }] }) });
+                const resultsJson = await response.json();
+                if(resultsJson.candidates) { document.getElementById('side-era').innerText = "Chronicle Complete"; document.getElementById('side-description').innerText = resultsJson.candidates[0].content.parts[0].text; }
+            } catch (err) { document.getElementById('side-description').innerText = "Connection Error."; }
+        }
         function closeSidebar() { document.getElementById('sidebar').classList.add('translate-x-full'); }
-
-        function simulateStripeCheckout() {
-            closePaywall();
-            alert("CC Gateway Approved...");
-            userHasProAccess = true;
-            
-            const proText = "👑 PRO Member";
-            document.getElementById('account-status-badge').innerText = proText;
-            document.getElementById('account-status-badge').className = "text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full font-semibold";
-            document.getElementById('account-status-badge-mobile').innerText = "👑 PRO";
-            document.getElementById('account-status-badge-mobile').className = "text-[10px] bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-0.5 rounded-full font-semibold";
-            document.getElementById('upgrade-header-btn').classList.add('hidden');
-            
-            alert("🎉 Upgrade Success! Local history databases and synthesis tools are completely active.");
-        }
+        function simulateStripeCheckout() { closePaywall(); userHasProAccess = true; document.getElementById('account-status-badge').innerText = "👑 PRO Member"; document.getElementById('account-status-badge').className = "text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full font-semibold"; document.getElementById('account-status-badge-mobile').innerText = "👑 PRO"; document.getElementById('upgrade-header-btn').classList.add('hidden'); alert("🎉 Upgrade Success!"); }
     </script>
 </body>
 </html>
