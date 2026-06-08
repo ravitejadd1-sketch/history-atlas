@@ -17,7 +17,7 @@
         .leaflet-popup-tip { background-color: #1a1a1e !important; }
         .transition-all { transition: all 0.3s ease-in-out; }
         
-        /* NEW: Ancient Woven Carpet Background Pattern */
+        /* Ancient Woven Carpet Background Pattern Layer */
         .carpet-tapestry-bg {
             background-color: #0d0d11;
             background-image: 
@@ -29,7 +29,7 @@
                 linear-gradient(60deg, #292524 25%, transparent 25.5%, transparent 75%, #292524 75.5%, #292524);
             background-size: 40px 70px;
             background-position: 0 0, 0 0, 20px 35px, 20px 35px, 0 0, 20px 35px;
-            border: 12px solid #292524; /* Ornate woven border frame */
+            border: 12px solid #292524;
         }
 
         .custom-scroll::-webkit-scrollbar { width: 6px; }
@@ -92,8 +92,8 @@
                     <div class="aspect-video w-full bg-black rounded-lg flex items-center justify-center overflow-hidden border border-gray-800 shadow-inner relative">
                         <video id="modal-video-player" class="w-full h-full rounded" src=""></video>
                         
-                        <div class="absolute bottom-4 left-4 right-4 bg-black/70 backdrop-blur-sm border border-gray-800 p-2 rounded-lg text-center text-xs text-amber-400 font-mono tracking-wide" id="voice-subtitles-box">
-                            Preparing narrator documentation voice tracks...
+                        <div class="absolute bottom-4 left-4 right-4 bg-black/75 backdrop-blur-sm border border-gray-800 p-3 rounded-lg text-center text-xs text-amber-400 font-mono tracking-wide leading-relaxed" id="voice-subtitles-box">
+                            Initiating localized historical archive mapping arrays... Generating script...
                         </div>
                     </div>
                     <h3 id="video-modal-title" class="text-base font-bold text-amber-400 mt-3 font-serif">Historical Media Playback</h3>
@@ -111,14 +111,14 @@
                     <div class="text-left bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6 space-y-2 text-sm text-gray-300">
                         <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Infinite Towns:</span> Explore micro-history worldwide</div>
                         <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Localized Pricing:</span> Fair regional rates active</div>
-                        <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Dynamic Voice:</span> AI voice narrator active over media</div>
+                        <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Dynamic Voice:</span> AI voice narrator tracks active over video</div>
                     </div>
 
                     <div id="paywall-price-box" class="text-3xl font-bold text-white mb-6">
                         $5.00 <span class="text-xs text-gray-500 font-normal">/ month (USD)</span>
                     </div>
                     
-                    <button onclick="simulateStripeCheckout()" class="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-700 text-black font-bold py-3 px-4 rounded-xl shadow-lg transition-all cursor-pointer">
+                    <button onclick="simulateStripeCheckout()" class="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-black font-bold py-3 px-4 rounded-xl shadow-lg transition-all cursor-pointer">
                         Start Your 7-Day Free Trial
                     </button>
                     <p class="text-[10px] text-gray-500 mt-3">Cancel anytime instantly with 1-click. Secured via Stripe.</p>
@@ -144,7 +144,7 @@
         let userHasProAccess = false; 
         let searchMarker = null;
         let map = null;
-        let activeSpeechUtterance = null; // Master speech synthesis controller anchor
+        let activeSpeechUtterance = null; 
 
         const defaultHistoricalPins = [
             { name: "Rome", coords: [41.9028, 12.4964], type: "capital" },
@@ -168,6 +168,7 @@
                 zoomControl: false
             });
 
+            // Uses a pre-baked, crisp, labeled baseline layout frame to prevent data errors entirely
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; OpenStreetMap & &copy; CARTO'
             }).addTo(map);
@@ -209,7 +210,7 @@
             });
         }
 
-        // NEW MULTIMEDIA ENGINE: CONNECTS GEMINI TEXT PARAMETERS TO COMPRESSED VIDEO TRACKS
+        // SYNCHRONIZED DUAL MEDIA SCRIPT: Renders the video file loop and voice layer simultaneously
         async function playCinematicWithVoice(cityName, lat, lon) {
             if (!userHasProAccess) {
                 openPaywall();
@@ -218,25 +219,23 @@
 
             const developerApiKey = localStorage.getItem('gemini_api_key');
             if(!developerApiKey) {
-                alert("⚠️ Voice Engine Offline: Connect your free Gemini developer API key using the ⚙️ Keys dashboard tool first to authorize synchronized video narratives!");
+                alert("⚠️ Voice Engine Offline: Click the ⚙️ Keys button at the top right to link your free Gemini developer API key first!");
                 return;
             }
 
-            // Fire and show video container immediately in loading state
-            document.getElementById('video-modal-title').innerText = `${cityName} - Archive Cinematic Reel`;
-            document.getElementById('voice-subtitles-box').innerText = "Connecting to history chronicles API parameters... Generating narrator voice data layer...";
+            document.getElementById('video-modal-title').innerText = `${cityName} - Historical Narrative Breakdown`;
+            document.getElementById('voice-subtitles-box').innerText = "Analyzing geographic parameters... Synthesizing dynamic narrator audio layer...";
             document.getElementById('video-modal').classList.remove('hidden');
 
             const player = document.getElementById('modal-video-player');
-            // Connect to our trusted sample streaming video background loop asset
             player.src = "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4";
             player.loop = true;
-            player.muted = true; // Mutes background source noise so narrator reads clearly
+            player.muted = true; // Mute the raw source data so the browser narration sounds pristine
             player.play();
 
             try {
                 // Fetch a high-impact short narrative summary targeted directly at video synchronization constraints
-                const videoPrompt = `Write a short, powerful, dramatic script narration explaining the micro-history, legendary combat strategies, or architectural wonders of ${cityName} (Coordinates: [${lat}, ${lon}]). Keep it strictly between 3 to 4 short, highly descriptive sentences. Focus on epic action words suitable for a documentary trailer voiceover.`;
+                const videoPrompt = `Write a short, powerful, dramatic script narration explaining the micro-history, legendary combat strategies, or architectural wonders of ${cityName} (Coordinates: [${lat}, ${lon}]. Keep it strictly between 3 to 4 short, highly descriptive sentences. Focus on epic action words suitable for a documentary trailer voiceover. Do not include markdown formatting or hashtags.`;
                 const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${developerApiKey}`;
                 
                 const response = await fetch(endpointUrl, {
@@ -250,21 +249,20 @@
                     const narratorScriptText = resJson.candidates[0].content.parts[0].text.replace(/[*#]/g, "");
                     document.getElementById('voice-subtitles-box').innerText = narratorScriptText;
 
-                    // DYNAMIC VOICE SYNCHRONIZER: Injects string payload into browser's speaker routing layers
-                    window.speechSynthesis.cancel(); // Stop any overlapping speech structures
+                    // Injects text payload straight into the client device's speaker routing matrices
+                    window.speechSynthesis.cancel(); 
                     activeSpeechUtterance = new SpeechSynthesisUtterance(narratorScriptText);
                     
-                    // Force device to prioritize a deep, clear English narration frequency channel
                     activeSpeechUtterance.lang = 'en-US';
-                    activeSpeechUtterance.rate = 0.90; // Slid down slightly for a dramatic, epic pacing layout
-                    activeSpeechUtterance.pitch = 0.85; // Lower pitch tone for professional voice trailer feel
+                    activeSpeechUtterance.rate = 0.88; // Slowed down slightly for an authoritative cadence
+                    activeSpeechUtterance.pitch = 0.85; // Lower pitch tone for a deep documentary narrator effect
                     
                     window.speechSynthesis.speak(activeSpeechUtterance);
                 } else {
                     document.getElementById('voice-subtitles-box').innerText = "Sync generation error. Checking API data feeds...";
                 }
             } catch (err) {
-                console.log("Video narration sync pipeline crash:", err);
+                console.log("Audio pipeline error:", err);
                 document.getElementById('voice-subtitles-box').innerText = "Network timeout syncing dynamic narration data tracks.";
             }
         }
@@ -287,9 +285,10 @@
                 document.getElementById('paywall-price-box').innerHTML = `${localizedTier.symbol}${localizedTier.amount} <span class="text-xs text-gray-500 font-normal">/ month (${localizedTier.currency})</span>`;
             } catch (error) { console.log(error); }
         }
+        
         function closePaywall() { document.getElementById('paywall-modal').classList.add('hidden'); }
         function toggleKeyVaultModal() { document.getElementById('key-vault-modal').classList.toggle('hidden'); const savedKey = localStorage.getItem('gemini_api_key'); if (savedKey) document.getElementById('gemini-key-input').value = savedKey; }
-        function saveDeveloperKeys() { const keyVal = document.getElementById('gemini-key-input').value.trim(); if(!keyVal) return; localStorage.setItem('gemini_api_key', keyVal); alert("Bound to system browse parameters."); toggleKeyVaultModal(); }
+        function saveDeveloperKeys() { const keyVal = document.getElementById('gemini-key-input').value.trim(); if(!keyVal) return; localStorage.setItem('gemini_api_key', keyVal); alert("Bound to system storage parameters."); toggleKeyVaultModal(); }
 
         document.getElementById('search-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') searchCity(); });
         async function searchCity() {
