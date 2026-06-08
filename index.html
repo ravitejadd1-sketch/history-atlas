@@ -3,11 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Global History Atlas - Cinematic Voice Edition</title>
+    <title>Global History Atlas - Immersive Pro Edition</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://js.stripe.com/v3/"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    
     <style>
+        /* FALLBACK MAP RENDERING INSURANCE: Explicitly forces the map box to have structure */
+        #map {
+            width: 100% !important;
+            height: 100% !important;
+            background-color: #111116 !important;
+        }
+
         .leaflet-popup-content-wrapper {
             background-color: #1a1a1e !important;
             color: #ffffff !important;
@@ -17,19 +26,18 @@
         .leaflet-popup-tip { background-color: #1a1a1e !important; }
         .transition-all { transition: all 0.3s ease-in-out; }
         
-        /* Ancient Woven Carpet Background Pattern Layer */
+        /* Ancient Woven Carpet Background Pattern */
         .carpet-tapestry-bg {
-            background-color: #0d0d11;
+            background-color: #0d0d11 !important;
             background-image: 
                 linear-gradient(30deg, #1c1917 12%, transparent 12.5%, transparent 87%, #1c1917 87.5%, #1c1917),
                 linear-gradient(150deg, #1c1917 12%, transparent 12.5%, transparent 87%, #1c1917 87.5%, #1c1917),
                 linear-gradient(30deg, #1c1917 12%, transparent 12.5%, transparent 87%, #1c1917 87.5%, #1c1917),
                 linear-gradient(150deg, #1c1917 12%, transparent 12.5%, transparent 87%, #1c1917 87.5%, #1c1917),
                 linear-gradient(60deg, #292524 25%, transparent 25.5%, transparent 75%, #292524 75.5%, #292524),
-                linear-gradient(60deg, #292524 25%, transparent 25.5%, transparent 75%, #292524 75.5%, #292524);
-            background-size: 40px 70px;
-            background-position: 0 0, 0 0, 20px 35px, 20px 35px, 0 0, 20px 35px;
-            border: 12px solid #292524;
+                linear-gradient(60deg, #292524 25%, transparent 25.5%, transparent 75%, #292524 75.5%, #292524) !important;
+            background-size: 40px 70px !important;
+            background-position: 0 0, 0 0, 20px 35px, 20px 35px, 0 0, 20px 35px !important;
         }
 
         .custom-scroll::-webkit-scrollbar { width: 6px; }
@@ -37,9 +45,9 @@
         .custom-scroll::-webkit-scrollbar-thumb { background: #2e2e3e; border-radius: 3px; }
     </style>
 </head>
-<body class="carpet-tapestry-bg text-gray-100 font-sans overflow-hidden h-screen w-screen flex flex-col p-1 sm:p-2">
+<body class="carpet-tapestry-bg text-gray-100 font-sans overflow-hidden h-screen w-screen flex flex-col p-2 sm:p-4">
 
-    <div class="flex-1 flex flex-col bg-[#0f0f11]/95 rounded-xl overflow-hidden border border-gray-800 shadow-2xl relative">
+    <div class="flex-1 flex flex-col bg-[#0f0f11]/95 rounded-xl overflow-hidden border-4 border-[#292524] shadow-2xl relative">
 
         <header class="bg-[#16161a] border-b border-gray-800 p-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between z-10 shadow-md">
             <div class="flex items-center justify-between w-full sm:w-auto">
@@ -69,7 +77,7 @@
 
         <div class="flex flex-1 relative overflow-hidden">
             
-            <div id="map" class="w-full h-full z-0"></div>
+            <div id="map"></div>
 
             <div id="sidebar" class="absolute right-0 top-0 h-full w-full sm:w-96 bg-[#16161a] border-l border-gray-800 z-10 translate-x-full transition-all p-6 shadow-2xl flex flex-col justify-between">
                 <div class="flex flex-col flex-1 overflow-y-auto custom-scroll pr-1">
@@ -91,9 +99,8 @@
                     
                     <div class="aspect-video w-full bg-black rounded-lg flex items-center justify-center overflow-hidden border border-gray-800 shadow-inner relative">
                         <video id="modal-video-player" class="w-full h-full rounded" src=""></video>
-                        
-                        <div class="absolute bottom-4 left-4 right-4 bg-black/75 backdrop-blur-sm border border-gray-800 p-3 rounded-lg text-center text-xs text-amber-400 font-mono tracking-wide leading-relaxed" id="voice-subtitles-box">
-                            Initiating localized historical archive mapping arrays... Generating script...
+                        <div class="absolute bottom-4 left-4 right-4 bg-black/75 backdrop-blur-sm border border-gray-800 p-3 rounded-lg text-center text-xs text-amber-400 font-mono tracking-wide" id="voice-subtitles-box">
+                            Generating narrator script data...
                         </div>
                     </div>
                     <h3 id="video-modal-title" class="text-base font-bold text-amber-400 mt-3 font-serif">Historical Media Playback</h3>
@@ -103,48 +110,30 @@
             <div id="paywall-modal" class="absolute inset-0 bg-black/80 z-30 hidden flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-[#16161a] border-2 border-amber-500/40 rounded-2xl max-w-md w-full p-6 relative shadow-2xl text-center">
                     <button onclick="closePaywall()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg font-bold cursor-pointer px-2">✕</button>
-                    
                     <div class="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">👑</div>
                     <h3 class="text-2xl font-bold text-white font-serif">Unlock ChronoMap Pro</h3>
-                    <p class="text-gray-400 text-sm mt-2 mb-6">Get unlimited access to every city on earth, historic document downloads, and high-definition dynamic video breakdowns.</p>
-                    
-                    <div class="text-left bg-gray-900/50 p-4 rounded-xl border border-gray-800 mb-6 space-y-2 text-sm text-gray-300">
-                        <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Infinite Towns:</span> Explore micro-history worldwide</div>
-                        <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Localized Pricing:</span> Fair regional rates active</div>
-                        <div class="flex items-center gap-2">🟢 <span class="font-semibold text-white">Dynamic Voice:</span> AI voice narrator tracks active over video</div>
-                    </div>
-
-                    <div id="paywall-price-box" class="text-3xl font-bold text-white mb-6">
-                        $5.00 <span class="text-xs text-gray-500 font-normal">/ month (USD)</span>
-                    </div>
-                    
-                    <button onclick="simulateStripeCheckout()" class="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-black font-bold py-3 px-4 rounded-xl shadow-lg transition-all cursor-pointer">
-                        Start Your 7-Day Free Trial
-                    </button>
-                    <p class="text-[10px] text-gray-500 mt-3">Cancel anytime instantly with 1-click. Secured via Stripe.</p>
+                    <p class="text-gray-400 text-sm mt-2 mb-6">Get unlimited access to micro-history worldwide, localized rates, and AI dynamic video voiceovers.</p>
+                    <div id="paywall-price-box" class="text-3xl font-bold text-white mb-6">$5.00</div>
+                    <button onclick="simulateStripeCheckout()" class="w-full bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-black font-bold py-3 px-4 rounded-xl shadow-lg transition-all cursor-pointer">Start Your Free Trial</button>
                 </div>
             </div>
 
             <div id="key-vault-modal" class="absolute inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
                 <div class="bg-[#1a1a22] border border-gray-800 rounded-2xl max-w-sm w-full p-6 relative text-center">
                     <button onclick="toggleKeyVaultModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white font-bold cursor-pointer">✕</button>
-                    <div class="text-2xl mb-2">🔑</div>
-                    <h4 class="text-lg font-bold text-white font-serif">Secure Credentials Vault</h4>
-                    <p class="text-xs text-gray-400 mt-1 mb-4">Paste your developer key from Google AI Studio. It saves safely inside your own device memory storage.</p>
-                    <input type="password" id="gemini-key-input" placeholder="AIZAsy..." class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm font-mono text-amber-400 focus:outline-none focus:border-amber-500 mb-4">
-                    <button onclick="saveDeveloperKeys()" class="w-full bg-amber-500 hover:bg-amber-600 text-black font-bold py-2 rounded-lg text-sm transition-colors cursor-pointer">Save Key Configuration</button>
+                    <h4 class="text-lg font-bold text-white font-serif">Credentials Vault</h4>
+                    <input type="password" id="gemini-key-input" placeholder="Paste Gemini Key here..." class="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-sm text-amber-400 mt-4 mb-4">
+                    <button onclick="saveDeveloperKeys()" class="w-full bg-amber-500 text-black font-bold py-2 rounded-lg text-sm cursor-pointer">Save Key</button>
                 </div>
             </div>
 
         </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let userHasProAccess = false; 
         let searchMarker = null;
         let map = null;
-        let activeSpeechUtterance = null; 
 
         const defaultHistoricalPins = [
             { name: "Rome", coords: [41.9028, 12.4964], type: "capital" },
@@ -152,29 +141,35 @@
             { name: "Constantinople (Istanbul)", coords: [41.0082, 28.9784], type: "capital" },
             { name: "Xi'an", coords: [34.3416, 108.9398], type: "capital" },
             { name: "Athens", coords: [37.9838, 23.7275], type: "capital" },
-            { name: "Alexandria", coords: [31.2001, 29.9187], type: "capital" },
             { name: "Battle of Cannae", coords: [41.2962, 16.1492], type: "battle" },
             { name: "Battle of Panipat", coords: [29.3909, 76.9635], type: "battle" },
             { name: "Giza Pyramids", coords: [29.9792, 31.1342], type: "wonder" },
             { name: "Taj Mahal", coords: [27.1751, 78.0421], type: "wonder" }
         ];
 
-        document.addEventListener("DOMContentLoaded", function() {
-            map = L.map('map', {
-                center: [22.0, 78.0], 
-                zoom: 4,
-                minZoom: 2,
-                maxZoom: 16,
-                zoomControl: false
-            });
+        // FIXED TIMING INJECTOR: Guarantees map layers draw perfectly on screen mount
+        window.onload = function() {
+            setTimeout(function() {
+                try {
+                    map = L.map('map', {
+                        center: [22.0, 78.0], 
+                        zoom: 4,
+                        minZoom: 2,
+                        maxZoom: 16,
+                        zoomControl: false
+                    });
 
-            // Uses a pre-baked, crisp, labeled baseline layout frame to prevent data errors entirely
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-                attribution: '&copy; OpenStreetMap & &copy; CARTO'
-            }).addTo(map);
+                    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                        attribution: '&copy; CARTO'
+                    }).addTo(map);
 
-            loadDefaultHistoricalNodes();
-        });
+                    loadDefaultHistoricalNodes();
+                    console.log("Map Engine Mounted Successfully.");
+                } catch (e) {
+                    console.error("Leaflet initiation delay encountered:", e);
+                }
+            }, 300); 
+        };
 
         function loadDefaultHistoricalNodes() {
             defaultHistoricalPins.forEach(pin => {
@@ -192,50 +187,33 @@
 
                 const popupContent = `
                     <div class="p-2 min-w-[210px]">
-                        <div class="flex justify-between items-center">
-                            <span class="text-[9px] text-amber-400 uppercase tracking-widest font-mono font-bold">${pin.type} Landmark</span>
-                        </div>
-                        <h3 class="text-sm font-bold text-white mb-1 mt-0.5">${pin.name}</h3>
+                        <h3 class="text-sm font-bold text-white mb-1">${pin.name}</h3>
                         <div class="flex flex-col gap-1.5 mt-2">
-                            <button onclick="handleSearchNodeAction('view', '${pin.name}', ${pin.coords[0]}, ${pin.coords[1]})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between">
-                                <span>📜 Synthesize AI Timeline</span> <span>→</span>
-                            </button>
-                            <button onclick="playCinematicWithVoice('${pin.name}', ${pin.coords[0]}, ${pin.coords[1]})" class="w-full text-left bg-purple-950 hover:bg-purple-800 text-white text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between border border-purple-500/30">
-                                <span>🎥 Play Cinematic Video</span> <span>▶</span>
-                            </button>
+                            <button onclick="handleSearchNodeAction('view', '${pin.name}', ${pin.coords[0]}, ${pin.coords[1]})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer flex items-center justify-between"><span>📜 Synthesize AI Timeline</span> <span>→</span></button>
+                            <button onclick="playCinematicWithVoice('${pin.name}', ${pin.coords[0]}, ${pin.coords[1]})" class="w-full text-left bg-purple-950 hover:bg-purple-800 text-white text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer border border-purple-500/30 flex items-center justify-between"><span>🎥 Play Cinematic Video</span> <span>▶</span></button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
                 marker.bindPopup(popupContent, { closeButton: false });
             });
         }
 
-        // SYNCHRONIZED DUAL MEDIA SCRIPT: Renders the video file loop and voice layer simultaneously
         async function playCinematicWithVoice(cityName, lat, lon) {
-            if (!userHasProAccess) {
-                openPaywall();
-                return;
-            }
-
+            if (!userHasProAccess) { openPaywall(); return; }
             const developerApiKey = localStorage.getItem('gemini_api_key');
-            if(!developerApiKey) {
-                alert("⚠️ Voice Engine Offline: Click the ⚙️ Keys button at the top right to link your free Gemini developer API key first!");
-                return;
-            }
+            if(!developerApiKey) { alert("⚠️ Key Vault Empty. Click the ⚙️ Keys button."); return; }
 
-            document.getElementById('video-modal-title').innerText = `${cityName} - Historical Narrative Breakdown`;
-            document.getElementById('voice-subtitles-box').innerText = "Analyzing geographic parameters... Synthesizing dynamic narrator audio layer...";
+            document.getElementById('video-modal-title').innerText = `${cityName} - Documentary Playback`;
+            document.getElementById('voice-subtitles-box').innerText = "Streaming narrative voice layer...";
             document.getElementById('video-modal').classList.remove('hidden');
 
             const player = document.getElementById('modal-video-player');
             player.src = "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4";
             player.loop = true;
-            player.muted = true; // Mute the raw source data so the browser narration sounds pristine
+            player.muted = true;
             player.play();
 
             try {
-                // Fetch a high-impact short narrative summary targeted directly at video synchronization constraints
-                const videoPrompt = `Write a short, powerful, dramatic script narration explaining the micro-history, legendary combat strategies, or architectural wonders of ${cityName} (Coordinates: [${lat}, ${lon}]. Keep it strictly between 3 to 4 short, highly descriptive sentences. Focus on epic action words suitable for a documentary trailer voiceover. Do not include markdown formatting or hashtags.`;
+                const videoPrompt = `Write a 3-sentence intense historical documentary narration script for ${cityName}. No hashtags or markdown.`;
                 const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${developerApiKey}`;
                 
                 const response = await fetch(endpointUrl, {
@@ -245,52 +223,43 @@
                 });
                 const resJson = await response.json();
 
-                if (resJson.candidates && resJson.candidates[0].content.parts[0].text) {
-                    const narratorScriptText = resJson.candidates[0].content.parts[0].text.replace(/[*#]/g, "");
-                    document.getElementById('voice-subtitles-box').innerText = narratorScriptText;
+                if (resJson.candidates) {
+                    const narratorText = resJson.candidates[0].content.parts[0].text;
+                    document.getElementById('voice-subtitles-box').innerText = narratorText;
 
-                    // Injects text payload straight into the client device's speaker routing matrices
-                    window.speechSynthesis.cancel(); 
-                    activeSpeechUtterance = new SpeechSynthesisUtterance(narratorScriptText);
-                    
-                    activeSpeechUtterance.lang = 'en-US';
-                    activeSpeechUtterance.rate = 0.88; // Slowed down slightly for an authoritative cadence
-                    activeSpeechUtterance.pitch = 0.85; // Lower pitch tone for a deep documentary narrator effect
-                    
-                    window.speechSynthesis.speak(activeSpeechUtterance);
-                } else {
-                    document.getElementById('voice-subtitles-box').innerText = "Sync generation error. Checking API data feeds...";
+                    window.speechSynthesis.cancel();
+                    const utterance = new SpeechSynthesisUtterance(narratorText);
+                    utterance.lang = 'en-US';
+                    utterance.rate = 0.88;
+                    utterance.pitch = 0.85;
+                    window.speechSynthesis.speak(utterance);
                 }
-            } catch (err) {
-                console.log("Audio pipeline error:", err);
-                document.getElementById('voice-subtitles-box').innerText = "Network timeout syncing dynamic narration data tracks.";
-            }
+            } catch (err) { console.log(err); }
         }
 
         function closeVideoModal() {
             const player = document.getElementById('modal-video-player');
-            player.pause();
-            player.src = "";
-            window.speechSynthesis.cancel(); // Terminate narrator audio tracking loops instantly
+            player.pause(); player.src = "";
+            window.speechSynthesis.cancel();
             document.getElementById('video-modal').classList.add('hidden');
         }
 
-        const parityPricingIndex = { "IN": { symbol: "₹", amount: "199", currency: "INR" }, "US": { symbol: "$", amount: "5.00", currency: "USD" } };
+        const parityPricingIndex = { "IN": { symbol: "₹", amount: "199" }, "US": { symbol: "$", amount: "5.00" } };
         async function openPaywall() {
             document.getElementById('paywall-modal').classList.remove('hidden');
             try {
                 const res = await fetch('https://ipapi.co/json/');
                 const geoData = await res.json();
                 const localizedTier = parityPricingIndex[geoData.country_code] || parityPricingIndex["US"];
-                document.getElementById('paywall-price-box').innerHTML = `${localizedTier.symbol}${localizedTier.amount} <span class="text-xs text-gray-500 font-normal">/ month (${localizedTier.currency})</span>`;
+                document.getElementById('paywall-price-box').innerHTML = `${localizedTier.symbol}${localizedTier.amount} / month`;
             } catch (error) { console.log(error); }
         }
         
         function closePaywall() { document.getElementById('paywall-modal').classList.add('hidden'); }
         function toggleKeyVaultModal() { document.getElementById('key-vault-modal').classList.toggle('hidden'); const savedKey = localStorage.getItem('gemini_api_key'); if (savedKey) document.getElementById('gemini-key-input').value = savedKey; }
-        function saveDeveloperKeys() { const keyVal = document.getElementById('gemini-key-input').value.trim(); if(!keyVal) return; localStorage.setItem('gemini_api_key', keyVal); alert("Bound to system storage parameters."); toggleKeyVaultModal(); }
-
+        function saveDeveloperKeys() { const keyVal = document.getElementById('gemini-key-input').value.trim(); if(!keyVal) return; localStorage.setItem('gemini_api_key', keyVal); toggleKeyVaultModal(); }
         document.getElementById('search-input').addEventListener('keypress', function(e) { if (e.key === 'Enter') searchCity(); });
+
         async function searchCity() {
             const query = document.getElementById('search-input').value.trim(); if (!query) return;
             try {
@@ -299,35 +268,34 @@
                 if (data && data.length > 0) {
                     const lat = parseFloat(data[0].lat); const lon = parseFloat(data[0].lon); const displayName = data[0].display_name.split(',')[0];
                     if (searchMarker) map.removeLayer(searchMarker);
-                    map.flyTo([lat, lon], 12, { animate: true, duration: 2.0 });
+                    map.flyTo([lat, lon], 12);
                     searchMarker = L.circleMarker([lat, lon], { radius: 10, fillColor: '#a855f7', color: '#7e22ce', weight: 3, fillOpacity: 0.9 }).addTo(map);
                     const popupContent = `
                         <div class="p-2 min-w-[220px]">
                             <h3 class="text-sm font-bold text-white mb-1">${displayName}</h3>
                             <div class="flex flex-col gap-1.5 mt-2">
-                                <button onclick="handleSearchNodeAction('view', '${displayName}', ${lat}, ${lon})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between"><span>📜 Synthesize AI Timeline</span> <span>→</span></button>
-                                <button onclick="playCinematicWithVoice('${displayName}', ${lat}, ${lon})" class="w-full text-left bg-purple-950 hover:bg-purple-800 text-white text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer transition-colors flex items-center justify-between border border-purple-500/30"><span>🎥 Play Cinematic Video</span> <span>▶</span></button>
+                                <button onclick="handleSearchNodeAction('view', '${displayName}', ${lat}, ${lon})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer flex items-center justify-between"><span>📜 Synthesize AI Timeline</span> <span>→</span></button>
+                                <button onclick="playCinematicWithVoice('${displayName}', ${lat}, ${lon})" class="w-full text-left bg-purple-950 hover:bg-purple-800 text-white text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer border border-purple-500/30 flex items-center justify-between"><span>🎥 Play Cinematic Video</span> <span>▶</span></button>
                             </div>
                         </div>`;
                     searchMarker.bindPopup(popupContent, { closeButton: false, offset: [0, -5] });
-                    setTimeout(() => { searchMarker.openPopup(); }, 2200);
                 }
-            } catch (error) { alert("Timeout error mapping parameters."); }
+            } catch (error) { console.log(error); }
         }
 
         async function handleSearchNodeAction(actionType, cityName, lat, lon) {
             if (!userHasProAccess) { openPaywall(); return; }
-            const developerApiKey = localStorage.getItem('gemini_api_key'); if(!developerApiKey) { alert("⚙️ Missing Key"); return; }
+            const developerApiKey = localStorage.getItem('gemini_api_key'); if(!developerApiKey) { alert("⚠️ Missing Key"); return; }
             document.getElementById('side-era').innerText = "AI Active..."; document.getElementById('side-title').innerText = `${cityName} Chronicles`; document.getElementById('sidebar').classList.remove('translate-x-full');
             try {
                 const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${developerApiKey}`;
-                const response = await fetch(endpointUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: `Provide a deeply compelling chronological timeline micro-history breakdown for the location: ${cityName} [${lat}, ${lon}]. Split into 3 distinct historic eras. Format cleanly.` }] }] }) });
+                const response = await fetch(endpointUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ contents: [{ parts: [{ text: `Provide a deeply compelling chronological timeline micro-history breakdown for ${cityName} [${lat}, ${lon}].` }] }] }) });
                 const resultsJson = await response.json();
                 if(resultsJson.candidates) { document.getElementById('side-era').innerText = "Chronicle Complete"; document.getElementById('side-description').innerText = resultsJson.candidates[0].content.parts[0].text; }
-            } catch (err) { document.getElementById('side-description').innerText = "Connection Error."; }
+            } catch (err) { console.log(err); }
         }
         function closeSidebar() { document.getElementById('sidebar').classList.add('translate-x-full'); }
-        function simulateStripeCheckout() { closePaywall(); userHasProAccess = true; document.getElementById('account-status-badge').innerText = "👑 PRO Member"; document.getElementById('account-status-badge').className = "text-xs bg-amber-500/20 text-amber-400 border border-amber-500/30 px-2.5 py-1 rounded-full font-semibold"; document.getElementById('account-status-badge-mobile').innerText = "👑 PRO"; document.getElementById('upgrade-header-btn').classList.add('hidden'); alert("🎉 Upgrade Success!"); }
+        function simulateStripeCheckout() { closePaywall(); userHasProAccess = true; document.getElementById('account-status-badge').innerText = "👑 PRO Member"; document.getElementById('account-status-badge-mobile').innerText = "👑 PRO"; document.getElementById('upgrade-header-btn').classList.add('hidden'); alert("🎉 Upgrade Success!"); }
     </script>
 </body>
 </html>
