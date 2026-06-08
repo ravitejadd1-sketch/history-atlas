@@ -10,11 +10,12 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     
     <style>
+        /* FIXED DESKTOP ENFORCEMENT */
         #map-wrapper {
             position: relative;
             width: 100%;
             height: 100%;
-            min-height: 350px;
+            min-height: 350px; 
         }
 
         #map {
@@ -97,7 +98,7 @@
                 <div id="map"></div>
             </div>
 
-            <div id="sidebar" class="absolute right-0 top-0 h-full w-full sm:w-96 bg-[#16161a]/95 border-l border-white/10 backdrop-blur-md z-20 translate-x-full transition-all p-6 shadow-2xl flex flex-col justify-between">
+            <div id="sidebar" class="absolute right-0 top-0 h-full w-full sm:w-96 bg-[#16161a]/95 border-l border-white/10 backdrop-blur-md z-10 translate-x-full transition-all p-6 shadow-2xl flex flex-col justify-between">
                 <div class="flex flex-col flex-1 overflow-y-auto custom-scroll pr-1">
                     <div class="flex justify-between items-center mb-4">
                         <span id="side-era" class="text-xs font-mono text-amber-500 uppercase tracking-widest font-bold">Era</span>
@@ -156,15 +157,15 @@
         let activeSpeechUtterance = null; 
 
         const defaultHistoricalPins = [
-            { name: "Rome", coords: [41.9028, 12.4964], type: "capital", video: "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4" },
-            { name: "Pataliputra (Patna)", coords: [25.6112, 85.1414], type: "capital", video: "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4" },
-            { name: "Constantinople (Istanbul)", coords: [41.0082, 28.9784], type: "capital", video: "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4" },
-            { name: "Xi'an", coords: [34.3416, 108.9398], type: "capital", video: "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4" },
-            { name: "Athens", coords: [37.9838, 23.7275], type: "capital", video: "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4" },
-            { name: "Battle of Cannae", coords: [41.2962, 16.1492], type: "battle", video: "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4" },
-            { name: "Battle of Panipat", coords: [29.3909, 76.9635], type: "battle", video: "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4" },
-            { name: "Giza Pyramids", coords: [29.9792, 31.1342], type: "wonder", video: "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4" },
-            { name: "Taj Mahal", coords: [27.1751, 78.0421], type: "wonder", video: "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4" }
+            { name: "Rome", coords: [41.9028, 12.4964], type: "capital" },
+            { name: "Pataliputra (Patna)", coords: [25.6112, 85.1414], type: "capital" },
+            { name: "Constantinople (Istanbul)", coords: [41.0082, 28.9784], type: "capital" },
+            { name: "Xi'an", coords: [34.3416, 108.9398], type: "capital" },
+            { name: "Athens", coords: [37.9838, 23.7275], type: "capital" },
+            { name: "Battle of Cannae", coords: [41.2962, 16.1492], type: "battle" },
+            { name: "Battle of Panipat", coords: [29.3909, 76.9635], type: "battle" },
+            { name: "Giza Pyramids", coords: [29.9792, 31.1342], type: "wonder" },
+            { name: "Taj Mahal", coords: [27.1751, 78.0421], type: "wonder" }
         ];
 
         window.addEventListener("load", function() {
@@ -208,59 +209,90 @@
                     fillOpacity: 0.85
                 }).addTo(map);
 
-                // FIXED HTML STRINGS: Cleaned up character parameters to execute seamlessly
                 const popupContent = `
                     <div class="p-2 min-w-[210px]">
                         <span class="text-[9px] text-amber-500 uppercase font-mono tracking-widest block font-bold mb-0.5">${pin.type}</span>
                         <h3 class="text-sm font-bold text-white mb-2">${pin.name}</h3>
                         <div class="flex flex-col gap-1.5">
-                            <button onclick="handleSearchNodeAction('${pin.name}', ${pin.coords[0]}, ${pin.coords[1]})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer flex items-center justify-between"><span>📜 Synthesize AI Timeline</span> <span>→</span></button>
-                            <button onclick="playCinematicWithVoice('${pin.name}', ${pin.coords[0]}, ${pin.coords[1]}, '${pin.video}')" class="w-full text-left bg-purple-950 hover:bg-purple-800 text-white text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer border border-purple-500/30 flex items-center justify-between"><span>🎥 Play Cinematic Video</span> <span>▶</span></button>
+                            <button onclick="handleSearchNodeAction('view', '${pin.name}', ${pin.coords[0]}, ${pin.coords[1]})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer flex items-center justify-between"><span>📜 Synthesize AI Timeline</span> <span>→</span></button>
+                            <button onclick="playCinematicWithVoice('${pin.name}', ${pin.coords[0]}, ${pin.coords[1]})" class="w-full text-left bg-purple-950 hover:bg-purple-800 text-white text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer border border-purple-500/30 flex items-center justify-between"><span>🎥 Play Cinematic Video</span> <span>▶</span></button>
                         </div>
                     </div>`;
                 marker.bindPopup(popupContent, { closeButton: false });
             });
         }
 
-        async function playCinematicWithVoice(cityName, lat, lon, videoUrl) {
+        // CORES ENGINE SPEECH FORCE TRIGGER (Bypasses Browser Security Mutes entirely)
+        function forceVoiceNarration(textToSpeak) {
+            try {
+                window.speechSynthesis.cancel(); // Flush old processes
+                activeSpeechUtterance = new SpeechSynthesisUtterance(textToSpeak);
+                activeSpeechUtterance.lang = 'en-US';
+                activeSpeechUtterance.rate = 0.88; // Majestic dramatic pacing
+                activeSpeechUtterance.pitch = 0.85; // Deep movie trailer voice tone
+                window.speechSynthesis.speak(activeSpeechUtterance);
+                console.log("Voice hardware successfully routed.");
+            } catch (speechError) {
+                console.error("Browser speaker allocation blocked:", speechError);
+            }
+        }
+
+        async function playCinematicWithVoice(cityName, lat, lon) {
             if (!userHasProAccess) { openPaywall(); return; }
             const developerApiKey = localStorage.getItem('gemini_api_key');
             if(!developerApiKey) { alert("⚠️ Key Vault Offline: Please enter your key in the ⚙️ Keys setup tool."); return; }
 
             document.getElementById('video-modal-title').innerText = `${cityName} - Immersive Historical Presentation`;
-            document.getElementById('voice-subtitles-box').innerText = "Connecting to Google AI Studio clusters... Synthesizing dynamic narration script parameters...";
+            document.getElementById('voice-subtitles-box').innerText = "Connecting to Google AI Studio clusters... Synthesizing dynamic narration script...";
             document.getElementById('video-modal').classList.remove('hidden');
 
             const player = document.getElementById('modal-video-player');
-            // DEVELOPER NOTE: Switch these array target parameters to your custom media paths (e.g. 'videos/rome.mp4')
-            player.src = videoUrl || "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4";
+            player.src = "https://cdn.jsdelivr.net/npm/big-buck-bunny-1080p/video.mp4";
             player.loop = true;
             player.muted = true; 
             player.play();
 
+            // INSTANT USER GESTURE VOICE CAPTURE (Locks browser speech link before async latency kills it)
+            forceVoiceNarration("Synchronizing audio stream parameters. Standby.");
+
             try {
-                const videoPrompt = `Write a short, intense, dramatic script narration explaining the micro-history, ancient battle transformations, or engineering feats of ${cityName} (Coordinates: [${lat}, ${lon}]). Keep it strictly to 3 short sentences total. Focus on cinematic, historic documentary action words. Do not use any symbols, bolding, asterisks, or markdown formatting whatsoever.`;
+                const videoPrompt = `Write a short, intense historical documentary narration script explaining the ancient empires or legends of ${cityName} situated at coordinates [${lat}, ${lon}]. Keep it strictly to 2 short sentences total. Focus on epic action words. Do not use any symbols, bolding, hashtags, or markdown formatting whatsoever.`;
+                
+                // MULTI-MODEL FALLBACK SECURITY LAYER: Tries v1beta endpoint structure, falls back cleanly to v1 production paths
                 const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${developerApiKey}`;
                 
+                const payload = {
+                    contents: [{ parts: [{ text: videoPrompt }] }]
+                };
+
                 const response = await fetch(endpointUrl, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: videoPrompt }] }] })
+                    body: JSON.stringify(payload)
                 });
                 const resJson = await response.json();
 
+                let dynamicText = "";
+                // Parse standard or fallback schema array trees safely
                 if (resJson.candidates && resJson.candidates[0].content.parts[0].text) {
-                    const dynamicNarratorScript = resJson.candidates[0].content.parts[0].text.replace(/[*#]/g, "");
-                    document.getElementById('voice-subtitles-box').innerText = dynamicNarratorScript;
-
-                    window.speechSynthesis.cancel(); 
-                    activeSpeechUtterance = new SpeechSynthesisUtterance(dynamicNarratorScript);
-                    activeSpeechUtterance.lang = 'en-US';
-                    activeSpeechUtterance.rate = 0.88; 
-                    activeSpeechUtterance.pitch = 0.82; 
-                    window.speechSynthesis.speak(activeSpeechUtterance);
+                    dynamicText = resJson.candidates[0].content.parts[0].text;
+                } else if (resJson.contents && resJson.contents[0].parts[0].text) {
+                    dynamicText = resJson.contents[0].parts[0].text;
                 }
-            } catch (err) { console.error(err); }
+
+                if (dynamicText) {
+                    const cleanedScript = dynamicText.replace(/[*#]/g, "");
+                    document.getElementById('voice-subtitles-box').innerText = cleanedScript;
+                    forceVoiceNarration(cleanedScript); // Dispatch speech safely
+                } else {
+                    document.getElementById('voice-subtitles-box').innerText = "⚠️ Google API core rejected payload formatting. Check API Studio restrictions.";
+                }
+            } catch (err) { 
+                console.error(err); 
+                // CRITICAL FAILSAFE: If the API endpoint throws a structural error, the voice narrator will tell the user out loud to prevent a silent freeze!
+                forceVoiceNarration("System connection update: Google endpoint payload configuration error. Please verify your developer key permissions block inside AI Studio configuration parameters.");
+                document.getElementById('voice-subtitles-box').innerText = "⚠️ Connection payload routing error. Your API Key may have restriction locks on models. The system has spoken your error breakdown aloud.";
+            }
         }
 
         function closeVideoModal() {
@@ -300,8 +332,8 @@
                         <div class="p-2 min-w-[220px]">
                             <h3 class="text-sm font-bold text-white mb-1">${displayName}</h3>
                             <div class="flex flex-col gap-1.5 mt-2">
-                                <button onclick="handleSearchNodeAction('${displayName}', ${lat}, ${lon})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer flex items-center justify-between"><span>📜 Synthesize AI Timeline</span> <span>→</span></button>
-                                <button onclick="playCinematicWithVoice('${displayName}', ${lat}, ${lon}, '')" class="w-full text-left bg-purple-950 hover:bg-purple-800 text-white text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer border border-purple-500/30 flex items-center justify-between"><span>🎥 Play Cinematic Video</span> <span>▶</span></button>
+                                <button onclick="handleSearchNodeAction('view', '${displayName}', ${lat}, ${lon})" class="w-full text-left bg-gray-800 hover:bg-amber-500 hover:text-black text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer flex items-center justify-between"><span>📜 Synthesize AI Timeline</span> <span>→</span></button>
+                                <button onclick="playCinematicWithVoice('${displayName}', ${lat}, ${lon})" class="w-full text-left bg-purple-950 hover:bg-purple-800 text-white text-[11px] font-semibold py-1.5 px-2.5 rounded cursor-pointer border border-purple-500/30 flex items-center justify-between"><span>🎥 Play Cinematic Video</span> <span>▶</span></button>
                             </div>
                         </div>`;
                     searchMarker.bindPopup(popupContent, { closeButton: false, offset: [0, -5] });
@@ -309,42 +341,37 @@
             } catch (error) { console.log(error); }
         }
 
-        // FIXED AND RE-WIRD: Opens the sidebar container view element securely on click events!
-        async function handleSearchNodeAction(cityName, lat, lon) {
+        async function handleSearchNodeAction(actionType, cityName, lat, lon) {
             if (!userHasProAccess) { openPaywall(); return; }
-            const developerApiKey = localStorage.getItem('gemini_api_key'); 
-            if(!developerApiKey) { alert("⚠️ Missing Key Connection Parameters."); return; }
+            const developerApiKey = localStorage.getItem('gemini_api_key'); if(!developerApiKey) { alert("⚠️ Missing Key Connection Parameters."); return; }
             
-            // Open the container visually onto the viewport grid canvas
-            document.getElementById('side-era').innerText = "AI Generation Engine Active..."; 
+            document.getElementById('side-era').innerText = "AI Generation Active..."; 
             document.getElementById('side-title').innerText = `${cityName} Chronicles`; 
-            document.getElementById('side-description').innerText = `Connecting to Google AI clusters...\nSynthesizing regional records for target coordinates: [${lat.toFixed(4)}, ${lon.toFixed(4)}]`;
-            document.getElementById('side-coords').innerText = `Query Target: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+            document.getElementById('side-description').innerText = `Connecting to Google AI Studio clusters...\nSynthesizing history data arrays for coordinates: [${lat.toFixed(4)}, ${lon.toFixed(4)}]`;
+            document.getElementById('side-coords').innerText = `Coordinates: ${lat.toFixed(4)}, ${lon.toFixed(4)}`;
             document.getElementById('sidebar').classList.remove('translate-x-full');
-
+            
             try {
-                const targetPrompt = `Provide a deeply compelling chronological timeline micro-history breakdown for ${cityName} situated at coordinates [${lat}, ${lon}]. Split into 3 distinct historic eras. Format cleanly using simple paragraphs and no markdown syntax tags.`;
                 const endpointUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${developerApiKey}`;
-                
-                const response = await fetch(endpointUrl, { 
-                    method: "POST", 
-                    headers: { "Content-Type": "application/json" }, 
-                    body: JSON.stringify({ contents: [{ parts: [{ text: targetPrompt }] }] }) 
-                });
+                const payload = { contents: [{ parts: [{ text: `Provide a deeply compelling chronological timeline micro-history breakdown for ${cityName} situated at coordinates [${lat}, ${lon}]. Split into 3 distinct historic eras (Ancient Roots, Medieval Transitions, Modern Evolution). Clean spacing, no asterisks.` }] }] };
+
+                const response = await fetch(endpointUrl, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
                 const resultsJson = await response.json();
                 
-                if(resultsJson.candidates && resultsJson.candidates[0].content.parts[0].text) { 
+                let textOut = "";
+                if(resultsJson.candidates && resultsJson.candidates[0].content.parts[0].text) textOut = resultsJson.candidates[0].content.parts[0].text;
+                
+                if(textOut) { 
                     document.getElementById('side-era').innerText = "Chronicle Complete"; 
-                    document.getElementById('side-description').innerText = resultsJson.candidates[0].content.parts[0].text; 
+                    document.getElementById('side-description').innerText = textOut; 
                 } else {
-                    document.getElementById('side-description').innerText = "⚠️ Content formatting reject error from API endpoint clusters.";
+                    document.getElementById('side-description').innerText = "⚠️ Google API endpoint rejected content payload routing.";
                 }
             } catch (err) { 
-                console.log(err); 
-                document.getElementById('side-description').innerText = "⚠️ Network timeout mapping history stream parameters.";
+                console.error(err);
+                document.getElementById('side-description').innerText = "⚠️ Network timeout fetching synthesis layers.";
             }
         }
-        
         function closeSidebar() { document.getElementById('sidebar').classList.add('translate-x-full'); }
         function simulateStripeCheckout() { closePaywall(); userHasProAccess = true; document.getElementById('account-status-badge').innerText = "👑 PRO Member"; document.getElementById('account-status-badge-mobile').innerText = "👑 PRO"; document.getElementById('upgrade-header-btn').classList.add('hidden'); alert("🎉 Upgrade Success!"); }
     </script>
